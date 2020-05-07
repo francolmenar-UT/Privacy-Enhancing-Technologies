@@ -7,7 +7,7 @@ msg = add_recipient("Andrea", "Hi")  # Prepend the recipient to the message
 print("Message with the recipient added: " + msg)
 
 # -------- First Encryption Step  - Mixer 3 -------- #
-encrypt_msg(msg, path_key_3)
+# encrypt_msg(msg, path_key_3)
 
 # -------- Second Encryption Step - Mixer 2 -------- #
 
