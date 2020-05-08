@@ -1,19 +1,44 @@
 import sys
 import struct
 import binascii
+from functions.crypto import encrypt_msg
+
+
+def create_message(recipient, message, mixers_keys):
+    msg = add_recipient(recipient, message)
+
+    # Create array of keys
+    pub_keys = list()
+    for path in mixers_keys:
+        key_file = open(path, "rb")
+        pub_keys.append(key_file.read())
+        key_file.close()
+
+    encrypted_message = encrypt_for_mixers(msg, pub_keys)
+
+    final_message = add_length(encrypted_message)
+
+    return final_message
+
+
+def encrypt_for_mixers(msg, mixers_keys):
+    for public_key in mixers_keys:
+        msg = encrypt_msg(msg, public_key)
+
+    return msg
 
 
 def add_recipient(name, msg):
     """
-    Adds the name of the receiver to the message to be sent
-
-    TODO probably it can be removed and added to the main once everything works
+    Adds the name of the receiver to the message to be sent, encoding the String
+    in utf-8
 
     :param name: Receiver name
     :param msg: Message to be sent
-    :return: The String with name added at the beginning of the message, separated by a coma
+    :return: The bytes representing the string <name>,<message>
     """
-    return name + "," + msg
+
+    return bytes(name + "," + msg, 'utf-8')
 
 
 def add_length(msg):
@@ -22,16 +47,9 @@ def add_length(msg):
      The result is encoded into Big Endian unsigned integer
 
     :param msg: The original message to be sent
-    :return: The original message msg with the 4 Byte length field as a suffix.
+    :return: The original message msg with the 4 Byte length field as a prefix.
     """
-    # size = sys.getsizeof(msg) # This gets the size of the whole variable, not just the string
 
-    size = len(msg.encode('utf-8'))  # Get the size in bytes of the message
+    size = struct.pack('>I', len(msg))  # > for big endian, I for unsigned int
 
-    new_size = struct.pack('>I', size)  # > is for big endian, I for unsigned int
-
-    print("Size in bytes: " + str(size))
-
-    print(binascii.hexlify(new_size))
-
-    return str(new_size) + msg  # Add the size to the original message
+    return size + msg  # Add the size to the original message
