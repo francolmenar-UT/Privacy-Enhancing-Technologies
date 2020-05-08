@@ -12,8 +12,12 @@ print(message)
 
 s = connect(HOST, PORT)
 
-response = send_message(message, s)
-
-print("Response: {}".format(response))
+try:
+    response = send_message(message, s)
+except ValueError as e:
+    print("Error in sending the message:")
+    print(e)
+else:
+    print("Message sent correctly!")
 
 disconnect(s)

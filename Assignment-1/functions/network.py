@@ -14,4 +14,6 @@ def send_message(message, sock):
 
     data = sock.recv(1)
 
+    if data != b'\x06':
+        raise ValueError("The server replied with the code: {}".format(data))
     return data
