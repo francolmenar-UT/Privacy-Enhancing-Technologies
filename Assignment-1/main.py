@@ -1,19 +1,19 @@
-from constants.constants import path_key_3
-from functions.crypto import encrypt_msg
-from functions.packet_prepare import add_recipient, add_length
+from constants.constants import keys_path, HOST, PORT
+from functions.packet_prepare import create_message
+from functions.network import connect, disconnect, send_message
 
-msg = add_recipient("Andrea", "Hi")  # Prepend the recipient to the message
+receiver = "Andrea"
+msg = "Hey"
 
-print("Message with the recipient added: " + msg)
+# The keys path must be in the order of encryption, so reverse the array
+message = create_message(receiver, msg, keys_path[::-1])
 
-# -------- First Encryption Step  - Mixer 3 -------- #
-# encrypt_msg(msg, path_key_3)
+print(message)
 
-# -------- Second Encryption Step - Mixer 2 -------- #
+s = connect(HOST, PORT)
 
+response = send_message(message, s)
 
-# -------- Third Encryption Step  - Mixer 1 -------- #
+print("Response: {}".format(response))
 
-
-msg = add_length(msg)  # Add the length of the message
-print("Message with the length added: " + msg)
+disconnect(s)

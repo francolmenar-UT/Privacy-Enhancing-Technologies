@@ -7,54 +7,52 @@ from cryptography.hazmat.primitives.asymmetric import padding as padding_asymetr
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
 
-from constants.constants import iv_size, key_size
+from constants.constants import IV_SIZE, KEY_SIZE
 
 
-def encrypt_msg(msg, path_key):
-    # TODO Fix sizes of the iv and key size
-    iv = os.urandom(iv_size)  # Used for RSA
-    key = os.urandom(key_size)
+def encrypt_msg(msg, public_key_str):
+    # Encrypt the message with aes
+    ciphertext, aes_key, IV = aes_encrypt(msg)
 
-    with open(path_key, "rb") as key_file:  # Read the public key
-        public_key = serialization.load_pem_public_key(
-            key_file.read(),
-            backend=default_backend())
+    # Concatenate IV and aes_key
+    aes_secret = IV + aes_key
 
-    rsa_output = rsa_encrypt(iv, key, public_key)  # Encrypt RSA
+    # Encrypt the aes_key and IV using RSA
+    rsa_output = rsa_encrypt(aes_secret, public_key_str)
 
-    aes_output = aes_encrypt(msg)  # Encrypt AES
-
-    return rsa_output + aes_output
+    # Concatenate the RSA encryption and the ciphertext
+    return rsa_output + ciphertext
 
 
-def rsa_encrypt(iv, key, public_key):
-    msg = iv + key  # The concatenation of the iv and the key is what is encrypted
+def rsa_encrypt(msg, public_key_str):
+    # Create the pub key object from the string
+    public_key = serialization.load_pem_public_key(
+        public_key_str,
+        backend=default_backend())
 
-    # TODO Take a look to the padding, it is not used the PKCS1-OAEP
-    # TODO Check that the hashes are the correct ones
-
-    ciphertext = public_key.encrypt(msg,
-                                    padding_asymetric.OAEP(
-                                        mgf=padding_asymetric.MGF1(algorithm=hashes.SHA1()),  # Changed to SHA-1
-                                        algorithm=hashes.SHA1(),
-                                        label=None)
-                                    )
+    # Encrypt the message
+    ciphertext = public_key.encrypt(
+        msg,
+        padding_asymetric.OAEP(
+            mgf=padding_asymetric.MGF1(algorithm=hashes.SHA1()),
+            algorithm=hashes.SHA1(),
+            label=None
+        )
+    )
 
     return ciphertext
 
 
 def aes_encrypt(msg):
-    # TODO Check that it works
-
-    key = os.urandom(128)  # Create the key
-    iv = os.urandom(128)
+    key = os.urandom(KEY_SIZE)
+    IV = os.urandom(IV_SIZE)
 
     padder = padding.PKCS7(128).padder()  # PKCS#7 padding
     padded_data = padder.update(msg)
     padded_data += padder.finalize()
 
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)  # Encrypt
+    cipher = Cipher(algorithms.AES(key), modes.CBC(IV), backend=default_backend())
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
-    return ciphertext
+    return ciphertext, key, IV
