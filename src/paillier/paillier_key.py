@@ -1,9 +1,11 @@
 class PublicKey:
     n = None
+    n_2 = None
     g = None
 
     def __init__(self, n, g):
         self.n = n
+        self.n_2 = n * n
         self.g = g
 
     def toString(self):

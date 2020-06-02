@@ -1,4 +1,5 @@
 from src.constants.const import KEY_LEN
+from src.functions.square_mult import square_mult
 from src.paillier.paillier_key import *
 
 import random
@@ -151,3 +152,17 @@ def key_gen():
         mu = calc_mu(lamb, n)  # Calculate mu
 
     return PublicKey(n, g), PrivateKey(lamb, mu)
+
+
+def enc(msg, pk):
+    """
+    Encrypts a message "msg" with the public key "pk"
+    :param msg: Message to be encrypted
+    :param pk: Public key to be used in the encryption
+    :return: The encrypted value
+    """
+    rdn = secrets.randbelow(pk.n)  # Get a random value from 0 to n
+    g_m = square_mult(pk.g, msg, pk.n)  # Calculate exponential values
+    r_n = square_mult(rdn, pk.n, pk.n)
+
+    return g_m * r_n % pk.n_2
