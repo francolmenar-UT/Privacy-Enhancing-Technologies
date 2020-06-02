@@ -63,13 +63,13 @@ def get_prime(p_len):
 
 def calc_lambda(p_1, p_2):
     """
-    Calculates lambda using the two input prime numbers
-    :param p_1:
-    :param p_2:
+    As two prime numbers are coprime to each other,
+    Lambda is going to be calculated using the euler totient
+    :param p_1: First prime number
+    :param p_2: Second prime number
     :return: Lambda
     """
-    # TODO calculate it using phi of n
-    return 0
+    return (p_1 - 1) * (p_2 - 1)
 
 
 def calc_g(num):
@@ -124,9 +124,9 @@ def key_gen():
         p = get_prime(KEY_LEN / 2)  # Each prime number has the half of the key's bit length
         q = get_prime(KEY_LEN / 2)
 
-    return
-
     lamb = calc_lambda(p, q)  # Calculate lambda
+
+    return
 
     n = p * q  # Calculate n
     n_2 = n * n  # Calculate n^2
