@@ -13,7 +13,9 @@ def main():
 
 @main.command(help='.')
 def pail():
-    key_gen()
+    pk, sk = key_gen()
+    pk.toString()
+    sk.toString()
 
 
 @main.command(help='Generates the Graphs from the data')

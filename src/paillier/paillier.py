@@ -1,8 +1,78 @@
-import secrets
-import random
-
 from src.constants.const import KEY_LEN
 from src.paillier.paillier_key import *
+
+import random
+
+import secrets
+
+
+def calc_g(num):
+    """
+    Calculates "g"
+    :param num: In this case it is n
+    :return: g = n + 1
+    """
+    return num + 1  # Following advice from the statement
+
+
+def calc_l(x, n):
+    """
+    Calculates L(x)
+    :param x:
+    :param n:
+    :return: L(x) result
+    """
+    return (x - 1) / n
+
+
+def calc_lambda(p_1, p_2):
+    """
+    As two prime numbers are coprime to each other,
+    Lambda is going to be calculated using the euler totient
+    :param p_1: First prime number
+    :param p_2: Second prime number
+    :return: Lambda
+    """
+    return (p_1 - 1) * (p_2 - 1)
+
+
+def calc_mu(lamb, n):
+    """
+    Calculates mu by obtaining the multiplicative inverse of lambda, which is phi of
+    :param n:
+    :param lamb:
+    :return: The result of mu
+    """
+    return mult_inv(lamb, n)
+
+
+def e_gcd(a, b):
+    """
+    Extended euclidean implementation to calculate the gcd
+    :param a:
+    :param b:
+    :return:n gcd of "a" and "b"
+    """
+    if a == 0:
+        return b, 0, 1
+    else:
+        g, y, x = e_gcd(b % a, a)
+        return g, x - (b // a) * y, y
+
+
+def get_prime(p_len):
+    """
+    Creates a random prime number with p_len bits
+    :param p_len: The length of the prime numbers in bits
+    :return: The random prime number
+    """
+    num = secrets.randbits(int(p_len))  # Create random number up to len bits
+
+    # Check until a prime number is found
+    while not is_prime(num, 128):
+        num = secrets.randbits(int(p_len))  # Create a new random number to check
+
+    return num
 
 
 def is_prime(n, t=128):
@@ -46,72 +116,18 @@ def is_prime(n, t=128):
     return True
 
 
-def get_prime(p_len):
+def mult_inv(num, n):
     """
-    Creates a random prime number with p_len bits
-    :param p_len: The length of the prime numbers in bits
-    :return: The random prime number
+    Calculates the multiplicative inverse of num in mod "n"
+    :param num: Number to calculate the multiplicative inverse
+    :param n: Modulus
+    :return: The multiplicative inverse of num mod n
     """
-    num = secrets.randbits(int(p_len))  # Create random number up to len bits
-
-    # Check until a prime number is found
-    while not is_prime(num, 128):
-        num = secrets.randbits(int(p_len))  # Create a new random number to check
-
-    return num
-
-
-def calc_lambda(p_1, p_2):
-    """
-    As two prime numbers are coprime to each other,
-    Lambda is going to be calculated using the euler totient
-    :param p_1: First prime number
-    :param p_2: Second prime number
-    :return: Lambda
-    """
-    return (p_1 - 1) * (p_2 - 1)
-
-
-def calc_g(num):
-    """
-    Calculates "g"
-    :param num:
-    :return:
-    """
-    return num + 1  # Following advice from the statement
-
-
-def calc_l(x, n):
-    """
-    Calculates L(x)
-    :param x:
-    :param n:
-    :return:
-    """
-    return (x - 1) / n  # TODO Check if it is in mod n or n^2
-
-
-def calc_mu(g, lamb, n_2, n):
-    """
-    Calculates mu
-    :param g:
-    :param lamb:
-    :param n_2:
-    :param n:
-    :return:
-    """
-    x = g ** lamb % n_2  # Calculate the inside from the L()
-    l_result = calc_l(x, n)
-
-    # TODO calculate mu as inverse of phi of n
-    return 0
-
-
-def paillier():
-    """
-    Manages the calls to the different methods to run the Paillier Cryptosystem
-    :return:
-    """
+    g, x, y = e_gcd(num, n)
+    if g != 1:
+        return None  # No multiplicative inverse exists
+    else:
+        return x % n  # Multiplicative inverse obtained
 
 
 def key_gen():
@@ -119,23 +135,19 @@ def key_gen():
     Creates the keys for the Paillier Cryptosystem
     :return: The public and private keys obtained
     """
-    p, q = 0, 0  # Initialize values for using the while loop
-    while p == q:  # To avoid to get the two prime numbers equal
-        p = get_prime(KEY_LEN / 2)  # Each prime number has the half of the key's bit length
-        q = get_prime(KEY_LEN / 2)
+    n, lamb, p, q, mu = 0, 0, 0, 0, None  # Initialize values for using the while loop
 
-    lamb = calc_lambda(p, q)  # Calculate lambda
+    while mu is None:  # To ensure that mu have a correct value
+        while p == q:  # To avoid to get the two prime numbers equal
+            p = get_prime(KEY_LEN / 2)  # Each prime number has the half of the key's bit length
+            q = get_prime(KEY_LEN / 2)
 
-    return
+        lamb = calc_lambda(p, q)  # Calculate lambda
 
-    n = p * q  # Calculate n
-    n_2 = n * n  # Calculate n^2
+        n = p * q  # Calculate n
 
-    g = calc_g(n_2)  # Calculate g
+        g = calc_g(n)  # Calculate g
 
-    mu = calc_mu(g, lamb, n_2, n)
+        mu = calc_mu(lamb, n)  # Calculate mu
 
     return PublicKey(n, g), PrivateKey(lamb, mu)
-
-
-28212031250264615512807258983629151942686779488304078199744659275300780260154293094172563731691536539195470111496322448986787977142091247971205149887615662508391907474272645564313231250361592165968076169562099266804714392196215690972853400589323069092023667367828825774513166236834718215683866273373743426172
