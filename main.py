@@ -3,6 +3,7 @@ import timeit
 import click
 from pyfiglet import Figlet
 from src.constants.const import *
+from src.paillier.paillier import key_gen
 
 
 @click.group()
@@ -10,6 +11,9 @@ def main():
     pass
 
 
+@main.command(help='.')
+def pail():
+    key_gen()
 
 
 @main.command(help='Generates the Graphs from the data')
