@@ -11,20 +11,30 @@ def main():
     pass
 
 
-@main.command(help='.')
+@main.command(help='Run the Paillier Encryption')
 def pail():
     pk, sk = key_gen()
 
     # pk.toString()
     # sk.toString()
 
-    print("Message: ", MSG)
+    print("Message to encrypt: ", MSG)
 
     msg_enc = enc(MSG, pk)
-    print(msg_enc)
+    print("Encrypted message: ", msg_enc)
 
     msg_dec = dec(msg_enc, sk, pk)
-    print(msg_dec)
+    print("Message decrypted: ", msg_dec)
+
+
+@main.command(help='Run the Secure Comparison Protocol')
+def comp():
+
+    num1, num2 = 4, 10
+    # print("Comparing {} and {}".format(num1, num2))
+    result = sqp(num1, num2)
+
+    # print("Result: ", result)
 
 
 @main.command(help='Generates the Graphs from the data')

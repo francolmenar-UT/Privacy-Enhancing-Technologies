@@ -182,13 +182,56 @@ def dec(enc_msg, sk, pk):
 
 
 def secure_addition(m1, m2, pk):
+    """
+    Performs a secure addition
+    :param m1: First encrypted message
+    :param m2: Second encrypted message
+    :param pk: Public Key
+    :return:
+    """
     return (m1 * m2) % pk.n_2
 
 
 def secure_scalar_mult(m1, c, pk):
+    """
+    Performs a secure scalar multiplication
+    :param m1: First encrypted message
+    :param c: Scalar variable to be used in the multiplication
+    :param pk: Public Key
+    :return:
+    """
     return int(square_mult(m1, c, pk.n_2))
 
 
 def secure_subst(m1, m2, pk):
+    """
+    Performs a Secure Subtraction
+    :param m1: First encrypted message
+    :param m2: Second encrypted message
+    :param pk: Public Key
+    :return:
+    """
     m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
     return (m1 * m2_aux) % pk.n_2
+
+
+def num_to_bin(num):
+    """
+    Covert a number into its bit string representation
+    :param num: Number to be converted to Bit String
+    :return: The resulting Bit String
+    """
+    b_num1 = bin(num)  # Num to bit string
+    return b_num1[:0] + b_num1[0 + 2:]  # Remove first two characters to have the correct bit array
+
+
+def sqp(num1, num2):
+    """
+    Performs the Secure Comparison Protocol
+    :param num1: First number to be compared
+    :param num2: Second number to be compared
+    :return:
+    """
+    print(num_to_bin(num1))
+
+    return 0
