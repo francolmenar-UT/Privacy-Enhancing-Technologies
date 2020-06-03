@@ -300,10 +300,10 @@ def calc_c(z, magic_length, sec_param, pk):
     r = sec_param + magic_length + 1
     r_enc = enc(r, pk)
 
-    return secure_addition(r_enc, z, pk)
+    return secure_addition(r_enc, z, pk), r
 
 
-def encrypt_c(c, sk, pk, magic_length):
+def calc_c_list(c, sk, pk, magic_length):
     """
     Calculates the encryption of all the bits of c
     :param c: Value c
@@ -316,6 +316,7 @@ def encrypt_c(c, sk, pk, magic_length):
     dec_c = dec_c % (2 ** magic_length)  # Reduce c to mod 2^l
 
     dec_c_bin = num_to_bin(dec_c)  # To binary
+    dec_c_bin = fill_left_zeros(dec_c_bin, magic_length - len(dec_c_bin))  # Check that no left zero is removed
 
     i = 0  # Initialize auxiliary variables
     c_list = []  # List for saving the encryptions of all the bits
@@ -330,6 +331,48 @@ def encrypt_c(c, sk, pk, magic_length):
     return c_list  # Return the encryption of all the bits
 
 
+def calc_e_list(r, c_encrypt, pk, magic_length):
+    """
+    Calculates the list of e values
+    :param r: Value r
+    :param c_encrypt: List with the values from c encrypted
+    :param pk: Public Key
+    :param magic_length: Length of the original message
+    :return:
+    """
+    e_list = []
+
+    r_filled = fill_left_zeros(r, magic_length - len(str(r)))  # Check that no left zero is removed
+    r_list = [int(x) for x in str(r_filled)]
+
+    for i, val in enumerate(c_encrypt):
+        # Left addition
+        enc_1 = enc(1, pk)  # Get the encryption of the elements
+        enc_c_i = enc(c_encrypt[i], pk)
+        enc_r_i = enc(r_list[i], pk)
+
+        left_add = secure_addition(enc_1, enc_c_i, pk)  # Perform the operations for left addition
+        left_add = secure_subst(left_add, enc_r_i, pk)
+
+        sum_op = enc(0, pk)  # Cumulative sum for the loop
+        for j in range(i, magic_length):  # Sum operation
+            enc_c_j = enc(c_encrypt[j], pk)
+            enc_r_j = enc(r_list[j], pk)
+
+            sum_j = secure_addition(enc_c_j, enc_r_j, pk)  # Calculate the sum for iteration j
+            sum_op = secure_addition(sum_op, sum_j, pk)  # Add the calculated value to the cumulative sum
+
+        e_i = secure_addition(left_add, sum_op, pk)  # Calculate final e_i value
+
+        e_list.append(e_i)  # Add the calculated value to the list
+
+    return e_list  # Return a list with all the e values
+
+
+def check_e():
+    
+
+
 def sqp(num1, num2, pk, sk, magic_length):
     """
     Performs the Secure Comparison Protocol
@@ -342,9 +385,12 @@ def sqp(num1, num2, pk, sk, magic_length):
     """
 
     z = calc_z(num1, num2, pk, magic_length)
-    c = calc_c(z, magic_length, SEC_PARAM, pk)
+    c, r = calc_c(z, magic_length, SEC_PARAM, pk)
 
-    c_encrypt = encrypt_c(c, sk, pk, magic_length)
-    print(c_encrypt)
+    c_encrypt = calc_c_list(c, sk, pk, magic_length)
+
+    e_list = calc_e_list(r, c_encrypt, pk, magic_length)
+
+
 
     return 0
