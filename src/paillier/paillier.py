@@ -170,11 +170,25 @@ def enc(msg, pk):
 
 def dec(enc_msg, sk, pk):
     """
-
-    :param enc_msg:
-    :param sk:
-    :param pk:
+    Decrypts a message "enc_msg" using the sk.
+    The public key "pk" is used to get the modulus used for the operations
+    :param enc_msg: Encrypted message
+    :param sk: Secret Key
+    :param pk: Public Key
     :return:
     """
-    x = square_mult(enc_msg, sk.lamb, pk.n_2)
-    return int(calc_l(x, pk.n) * sk.mu % pk.n)
+    x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
+    return int(calc_l(x, pk.n) * sk.mu % pk.n)  # Calculate the resulting value
+
+
+def secure_addition(m1, m2, pk):
+    return (m1 * m2) % pk.n_2
+
+
+def secure_scalar_mult(m1, c, pk):
+    return int(square_mult(m1, c, pk.n_2))
+
+
+def secure_subst(m1, m2, pk):
+    m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
+    return (m1 * m2_aux) % pk.n_2

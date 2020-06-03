@@ -3,7 +3,7 @@ import timeit
 import click
 from pyfiglet import Figlet
 from src.constants.const import *
-from src.paillier.paillier import key_gen, enc, dec
+from src.paillier.paillier import *
 
 
 @click.group()
@@ -18,14 +18,13 @@ def pail():
     # pk.toString()
     # sk.toString()
 
-    print(MSG)
+    print("Message: ", MSG)
 
     msg_enc = enc(MSG, pk)
     print(msg_enc)
 
     msg_dec = dec(msg_enc, sk, pk)
     print(msg_dec)
-
 
 
 @main.command(help='Generates the Graphs from the data')
