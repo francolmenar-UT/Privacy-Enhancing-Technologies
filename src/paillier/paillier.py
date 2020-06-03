@@ -139,9 +139,13 @@ def key_gen():
     n, lamb, g, p, q, mu = 0, 0, 0, 0, 0, None  # Initialize values for using the while loop
 
     while mu is None:  # To ensure that mu have a correct value
-        while p == q:  # To avoid to get the two prime numbers equal
+        while p == q or mu is None:  # To avoid to get the two prime numbers equal
             p = get_prime(KEY_LEN / 2)  # Each prime number has the half of the key's bit length
             q = get_prime(KEY_LEN / 2)
+            mu = -1  # To avoid infinite loop
+            print(p)
+            print(q)
+            print("While p")
 
         lamb = calc_lambda(p, q)  # Calculate lambda
 

@@ -13,6 +13,7 @@ def main():
 
 @main.command(help='Run the Paillier Encryption')
 def pail():
+    print("Gen..")
     pk, sk = key_gen()
 
     # pk.toString()
