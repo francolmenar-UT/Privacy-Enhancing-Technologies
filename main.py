@@ -37,7 +37,9 @@ def comp():
     num1_enc = enc(num1, pk)
     num2_enc = enc(num2, pk)
 
-    result = sqp(num1_enc, num2_enc, pk, sk, 4)
+    magic_length = 4
+
+    result = sqp(num1_enc, num2_enc, pk, sk, magic_length)
 
     # print("Result: ", result)
 

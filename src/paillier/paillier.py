@@ -136,7 +136,7 @@ def key_gen():
     Creates the keys for the Paillier Cryptosystem
     :return: The public and private keys obtained
     """
-    n, lamb, p, q, mu = 0, 0, 0, 0, None  # Initialize values for using the while loop
+    n, lamb, g, p, q, mu = 0, 0, 0, 0, 0, None  # Initialize values for using the while loop
 
     while mu is None:  # To ensure that mu have a correct value
         while p == q:  # To avoid to get the two prime numbers equal
@@ -271,94 +271,34 @@ def set_b_len(b_num1, b_num2):
     return str(b_num1), str(b_num2), len(b_num1)
 
 
-def calc_z(enc1, enc2, b_len, pk, magic_length, sk):
+def calc_z(num1, num2, pk, magic_length):
+    """
+    Calculates the value "z"
+    :param num1: First encrypted number to be compared
+    :param num2: Second encrypted number to be compared
+    :param pk: Public Key
+    :param magic_length: Length of the original plain text
+    :return:
+    """
     # First addition
-    # two_l = int(num_to_bin(2 ** b_len))
-
-    # print(two_l)
-    print("Calc z")
-
-    two_l = 2 ** magic_length
-    print("Magic: ", magic_length)
-    print("Two_l: ", two_l)
-
-    print("Encrypting ", two_l)
-
-    two_l_enc = enc(two_l, pk)
-
-    print("Output of enc: ", two_l_enc)
-
-    two_l_enc = int(num_to_bin(two_l_enc))
-
-    print("Output of bin: ", two_l_enc)
-
-    aux = int(str(two_l_enc), 2)
-
-    print("Output of bin back to num: ", aux)
-
-    aux = dec(aux, sk, pk)
-
-    print("Back to original: ", aux)
-    print()
-
-    print("Two_l_enc", two_l_enc)
-    print("Enc1: ", enc1)
-
-    add = secure_addition(two_l_enc, enc1, None, n=b_len)
-
-    print("Result from add: ", add)
-
-    return add, None
+    length_enc = enc(2 ** magic_length, pk)
+    add = secure_addition(length_enc, num1, pk)
 
     # Subtraction
-    z = secure_subst(add, enc2, two_l)
-    return z, two_l
+    return secure_subst(add, num2, pk)
 
 
 def sqp(num1, num2, pk, sk, magic_length):
     """
     Performs the Secure Comparison Protocol
-    :param num1: First number to be compared
-    :param num2: Second number to be compared
+    :param magic_length: Length of the original message
+    :param num1: First encrypted number to be compared
+    :param num2: Second encrypted number to be compared
+    :param sk: Secret Key
+    :param pk: Public Key
     :return:
     """
 
-    au = enc(2 ** magic_length, pk)
-    add = secure_addition(au, num1, pk)
-
-    print(dec(add,sk, pk))
-
-
-
-    # Obtain the bit representation of the numbers
-    b_num1 = str(num_to_bin(num1))
-    b_num2 = str(num_to_bin(num2))
-
-    aux = int(str(b_num1), 2)
-
-    aux = dec(int(aux), sk, pk)
-
-    print("Original: {}".format(aux))
-
-    # Obtain the bit string with the same length
-    b_num1, b_num2, b_len = set_b_len(b_num1, b_num2)
-
-    # print(b_num1)
-    # print(b_num2)
-
-    print("Length of bits: {}\n".format(b_len))
-
-    # Calculate the z value and obtain the new modulus
-    z, two_l = calc_z(int(b_num1), int(b_num2), b_len, pk, magic_length, sk)
-
-    print("\nTEST")
-
-    # z_num = int(str(z), 2)
-
-    # print("Aux: ", aux)
-
-    z_final = dec(z, sk, pk)
-
-    print("Add: ", z_final)
+    z = calc_z(num1, num2, pk, magic_length)
 
     return 0
