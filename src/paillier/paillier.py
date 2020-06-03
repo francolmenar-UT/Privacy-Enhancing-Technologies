@@ -1,4 +1,4 @@
-from src.constants.const import KEY_LEN
+from src.constants.const import KEY_LEN, SEC_PARAM
 from src.functions.square_mult import square_mult
 from src.paillier.paillier_key import *
 
@@ -288,6 +288,48 @@ def calc_z(num1, num2, pk, magic_length):
     return secure_subst(add, num2, pk)
 
 
+def calc_c(z, magic_length, sec_param, pk):
+    """
+    Calculates the value c
+    :param z: Value z
+    :param magic_length: Length of the original message
+    :param sec_param: Security Parameter
+    :param pk: Public Key
+    :return:
+    """
+    r = sec_param + magic_length + 1
+    r_enc = enc(r, pk)
+
+    return secure_addition(r_enc, z, pk)
+
+
+def encrypt_c(c, sk, pk, magic_length):
+    """
+    Calculates the encryption of all the bits of c
+    :param c: Value c
+    :param sk: Secret Key
+    :param pk: Public Key
+    :param magic_length: Length of the original message
+    :return: A list with all the bits of c encrypted
+    """
+    dec_c = dec(c, sk, pk)  # Decrypt c
+    dec_c = dec_c % (2 ** magic_length)  # Reduce c to mod 2^l
+
+    dec_c_bin = num_to_bin(dec_c)  # To binary
+
+    i = 0  # Initialize auxiliary variables
+    c_list = []  # List for saving the encryptions of all the bits
+
+    # Encrypt all the different bits and save them in a list
+    while i < len(dec_c_bin):
+        enc_i = enc(int(dec_c_bin[i]), pk)  # Encrypt the bit i
+        c_list.append(enc_i)  # Add new element
+
+        i += 1  # Update index
+
+    return c_list  # Return the encryption of all the bits
+
+
 def sqp(num1, num2, pk, sk, magic_length):
     """
     Performs the Secure Comparison Protocol
@@ -300,5 +342,9 @@ def sqp(num1, num2, pk, sk, magic_length):
     """
 
     z = calc_z(num1, num2, pk, magic_length)
+    c = calc_c(z, magic_length, SEC_PARAM, pk)
+
+    c_encrypt = encrypt_c(c, sk, pk, magic_length)
+    print(c_encrypt)
 
     return 0
