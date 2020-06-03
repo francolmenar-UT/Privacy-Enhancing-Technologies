@@ -220,12 +220,13 @@ def secure_subst(m1, m2, pk, n=None):
     :param pk: Public Key
     :return:
     """
-    m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
-
     if n is not None:  # No pk used, just modulus
+        m2_aux = int(square_mult(m2, n - 1, n * n))
         return (m1 * m2_aux) % (n * n)
 
-    return (m1 * m2_aux) % pk.n_2  # pk used
+    else:
+        m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
+        return (m1 * m2_aux) % pk.n_2  # pk used
 
 
 def num_to_bin(num):
@@ -271,7 +272,7 @@ def set_b_len(b_num1, b_num2):
     return str(b_num1), str(b_num2), len(b_num1)
 
 
-def calc_z(num1, num2, pk, magic_length):
+def calc_z(num1, num2, pk, magic_length, sk):
     """
     Calculates the value "z"
     :param num1: First encrypted number to be compared
@@ -280,15 +281,39 @@ def calc_z(num1, num2, pk, magic_length):
     :param magic_length: Length of the original plain text
     :return:
     """
+    print("++++++++++++++++ calc_z ++++++++++++++++")
+    print("Num1 enc: ", num1)
+    print("Num1: ", dec(num1, sk, pk))
+    print("Num2 enc: ", num2)
+    print("Num2: ", dec(num2, sk, pk))
+    print("Len: ", 2 ** magic_length)
+    print()
+
     # First addition
     length_enc = enc(2 ** magic_length, pk)
+
     add = secure_addition(length_enc, num1, pk)
+    print("Add of {} + {} = {}".format(
+        dec(length_enc, sk, pk),
+        dec(num1, sk, pk),
+        dec(add, sk, pk)))
+
+    z = secure_subst(add, num2, pk)
+
+    print("Subs of {} - {} = {}".format(
+        dec(add, sk, pk),
+        dec(num2, sk, pk),
+        dec(z, sk, pk)))
+    print()
+
+    print("Z: ", z)
+    print("Decrypted Z: ", dec(z, sk, pk))
 
     # Subtraction
-    return secure_subst(add, num2, pk)
+    return z
 
 
-def calc_c(z, magic_length, sec_param, pk):
+def calc_c(z, magic_length, sec_param, pk, sk):
     """
     Calculates the value c
     :param z: Value z
@@ -297,10 +322,34 @@ def calc_c(z, magic_length, sec_param, pk):
     :param pk: Public Key
     :return:
     """
+    print("\n++++++++++++++++ calc_c ++++++++++++++++")
+    print("Z: ", dec(z, sk, pk))
+    print("Magic_length: ", magic_length)
+    print("sec_param: ", sec_param)
+    print()
+
     r = sec_param + magic_length + 1
     r_enc = enc(r, pk)
 
-    return secure_addition(r_enc, z, pk), r
+    print("r: ", r)
+    print("r enc: ", r_enc)
+    print("r dec: ", dec(r_enc, sk, pk))
+    print()
+
+    c = secure_addition(r_enc, z, pk)
+
+    print("Add of {} + {} =  {}".format(
+        dec(r_enc, sk, pk),
+        dec(z, sk, pk),
+        dec(c, sk, pk)
+    ))
+    print()
+
+    print("C: ", c)
+    print("Decrypted C: ", dec(c, sk, pk))
+    print("r: ", r)
+
+    return c, r
 
 
 def calc_c_list(c, sk, pk, magic_length):
@@ -312,26 +361,43 @@ def calc_c_list(c, sk, pk, magic_length):
     :param magic_length: Length of the original message
     :return: A list with all the bits of c encrypted
     """
+    print("\n++++++++++++++++ calc_c_list ++++++++++++++++")
+    print("C: ", dec(c, sk, pk))
+    print("Magic_length: ", magic_length)
+    print()
+
     dec_c = dec(c, sk, pk)  # Decrypt c
+    print("C before mod: ", dec_c)
     dec_c = dec_c % (2 ** magic_length)  # Reduce c to mod 2^l
+    print("C after mod: ", dec_c)
 
     dec_c_bin = num_to_bin(dec_c)  # To binary
+
+    print("C in bin: ", dec_c_bin)
+
     dec_c_bin = fill_left_zeros(dec_c_bin, magic_length - len(dec_c_bin))  # Check that no left zero is removed
+
+    print("C in bin filled: ", dec_c_bin)
+    print()
 
     i = 0  # Initialize auxiliary variables
     c_list = []  # List for saving the encryptions of all the bits
 
     # Encrypt all the different bits and save them in a list
     while i < len(dec_c_bin):
-        enc_i = enc(int(dec_c_bin[i]), pk)  # Encrypt the bit i
+        print(dec_c_bin[i])
+        enc_i = enc(int(dec_c_bin[i]), pk)  # Encrypt the bit i  # TODO HERE HAPPENS SOMETHING
         c_list.append(enc_i)  # Add new element
 
         i += 1  # Update index
 
+    for i, val in enumerate(c_list):
+        print("c_list[{}] = {}".format(i, dec(c_list[i], sk, pk)))
+
     return c_list  # Return the encryption of all the bits
 
 
-def calc_e_list(r, c_encrypt, pk, magic_length):
+def calc_e_list(r, c_encrypt, pk, magic_length, sk):
     """
     Calculates the list of e values
     :param r: Value r
@@ -340,37 +406,112 @@ def calc_e_list(r, c_encrypt, pk, magic_length):
     :param magic_length: Length of the original message
     :return:
     """
-    e_list = []
+    print("\n++++++++++++++++ calc_e_list ++++++++++++++++")
+    for i, val in enumerate(c_encrypt):
+        print(c_encrypt[i])
+        print("c_list[{}] = {}".format(i, dec(c_encrypt[i], sk, pk)))
+    print("r ", r)
+    print("Magic_length: ", magic_length)
+    print()
 
+    e_list = []
+    print("r before fill: ", r)
     r_filled = fill_left_zeros(r, magic_length - len(str(r)))  # Check that no left zero is removed
+    print("r after fill: ", r_filled)
+
     r_list = [int(x) for x in str(r_filled)]
+    print(r_list)
+    print()
 
     for i, val in enumerate(c_encrypt):
+        print("\nI: ", i)
+        print("original c_encrypt[{}]: {}".format(i, c_encrypt[i]))
+        print("Dec c_list[{}] = {}".format(i, dec(c_encrypt[i], sk, pk)))
+        print()
+
         # Left addition
         enc_1 = enc(1, pk)  # Get the encryption of the elements
-        enc_c_i = enc(c_encrypt[i], pk)
+
+        enc_c_i = c_encrypt[i]
+
         enc_r_i = enc(r_list[i], pk)
 
         left_add = secure_addition(enc_1, enc_c_i, pk)  # Perform the operations for left addition
+
+        print("enc_c_i dec: ", dec(enc_c_i, sk, pk))
+        print("Result add: {}".format(dec(left_add, sk, pk)))
+        print()
+
+        print("r_list[{}] dec: {}".format(i, dec(enc_r_i, sk, pk)))
         left_add = secure_subst(left_add, enc_r_i, pk)
+        print("Result subs: {}".format(dec(left_add, sk, pk)))
 
         sum_op = enc(0, pk)  # Cumulative sum for the loop
+
+        print("\nJ:")
+        print("0 dec: ", dec(sum_op, sk, pk))
         for j in range(i, magic_length):  # Sum operation
-            enc_c_j = enc(c_encrypt[j], pk)
+            enc_c_j = c_encrypt[j]
+
+            print("original c_encrypt[{}]: {}".format(i, c_encrypt[j]))
+            print("Dec enc_c_j = {}".format(dec(enc_c_j, sk, pk)))
+
             enc_r_j = enc(r_list[j], pk)
 
+            print()
+            print(r_list)
+            print(r_list[j])
+            print(enc_r_j)
+            print(dec(enc_r_j, sk, pk))
+            print()
+
+            print("original r_list[{}]: {}".format(j, r_list[j]))
+            print("Dec r_list[{}] = {}".format(j, dec(enc_r_j, sk, pk)))
+            print()
+
             sum_j = secure_addition(enc_c_j, enc_r_j, pk)  # Calculate the sum for iteration j
+            print("Result add {} + {} =  {}".format(dec(c_encrypt[j], sk, pk),
+                                                    dec(enc_r_j, sk, pk),
+                                                    dec(sum_j, sk, pk)
+                                                    ))
+
             sum_op = secure_addition(sum_op, sum_j, pk)  # Add the calculated value to the cumulative sum
 
+            print("Result add =  {}".format(dec(sum_op, sk, pk)
+                                            ))
+
         e_i = secure_addition(left_add, sum_op, pk)  # Calculate final e_i value
+        print("Result add {} + {} =  {}".format(dec(left_add, sk, pk),
+                                                dec(sum_op, sk, pk),
+                                                dec(e_i, sk, pk)
+                                                ))
 
         e_list.append(e_i)  # Add the calculated value to the list
+
+    print()
+    for i, val in enumerate(e_list):
+        print(e_list[i])
+        print("e_list[{}] = {}".format(i, dec(e_list[i], sk, pk)))
 
     return e_list  # Return a list with all the e values
 
 
-def check_e():
-    
+def check_e(e_list, pk, sk, magic_length):
+    print("\n++++++++++++++++ check_e ++++++++++++++++")
+    print(pk.n)
+
+    for i, val in enumerate(e_list):
+        e_i = dec(e_list[i], sk, pk)
+        # e_i = e_i % (2 ** magic_length)  # Reduce e_i to mod 2^l
+
+        print("e_list[{}] = {}".format(i, dec(e_list[i], sk, pk)))
+        print(e_i)
+
+        e_i = num_to_bin(e_i)
+        e_i = fill_left_zeros(e_i, magic_length + 1 - len(str(e_i)))
+        print(e_i)
+        print(e_i[0])
+        print()
 
 
 def sqp(num1, num2, pk, sk, magic_length):
@@ -383,14 +524,22 @@ def sqp(num1, num2, pk, sk, magic_length):
     :param pk: Public Key
     :return:
     """
+    int_1, int_2, len_i = 5, 10, 4
+    sust = 2 ** len_i + int_1
+    """print(sust)
+    print(2 ** len_i)
+    print(sust % 2 ** len_i)
+    print(sust - int_2 % 2 ** len_i)
+    print()
+"""
+    z = calc_z(num1, num2, pk, magic_length, sk)
 
-    z = calc_z(num1, num2, pk, magic_length)
-    c, r = calc_c(z, magic_length, SEC_PARAM, pk)
+    c, r = calc_c(z, magic_length, SEC_PARAM, pk, sk)
 
     c_encrypt = calc_c_list(c, sk, pk, magic_length)
 
-    e_list = calc_e_list(r, c_encrypt, pk, magic_length)
+    e_list = calc_e_list(r, c_encrypt, pk, magic_length, sk)
 
-
+    check_e(e_list, pk, sk, magic_length)
 
     return 0
