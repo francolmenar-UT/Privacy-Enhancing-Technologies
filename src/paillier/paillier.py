@@ -162,7 +162,19 @@ def enc(msg, pk):
     :return: The encrypted value
     """
     rdn = secrets.randbelow(pk.n)  # Get a random value from 0 to n
-    g_m = square_mult(pk.g, msg, pk.n)  # Calculate exponential values
-    r_n = square_mult(rdn, pk.n, pk.n)
 
-    return g_m * r_n % pk.n_2
+    g_m = square_mult(pk.g, msg, pk.n_2)  # Calculate exponential values
+    r_n = square_mult(rdn, pk.n, pk.n_2)
+    return (g_m * r_n) % pk.n_2
+
+
+def dec(enc_msg, sk, pk):
+    """
+
+    :param enc_msg:
+    :param sk:
+    :param pk:
+    :return:
+    """
+    x = square_mult(enc_msg, sk.lamb, pk.n_2)
+    return int(calc_l(x, pk.n) * sk.mu % pk.n)
