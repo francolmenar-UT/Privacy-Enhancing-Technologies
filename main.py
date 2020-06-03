@@ -29,10 +29,15 @@ def pail():
 
 @main.command(help='Run the Secure Comparison Protocol')
 def comp():
+    pk, sk = key_gen()
 
-    num1, num2 = 4, 10
-    # print("Comparing {} and {}".format(num1, num2))
-    result = sqp(num1, num2)
+    num1, num2 = 5, 10
+    print("\tComparing {} and {}\n".format(num1, num2))
+
+    num1_enc = enc(num1, pk)
+    num2_enc = enc(num2, pk)
+
+    result = sqp(num1_enc, num2_enc, pk, sk, 4)
 
     # print("Result: ", result)
 

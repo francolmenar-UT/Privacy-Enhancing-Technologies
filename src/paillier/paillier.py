@@ -181,38 +181,51 @@ def dec(enc_msg, sk, pk):
     return int(calc_l(x, pk.n) * sk.mu % pk.n)  # Calculate the resulting value
 
 
-def secure_addition(m1, m2, pk):
+def secure_addition(m1, m2, pk, n=None):
     """
     Performs a secure addition
+    :param n: Modulus. Is only used when no pk is set
     :param m1: First encrypted message
     :param m2: Second encrypted message
     :param pk: Public Key
     :return:
     """
-    return (m1 * m2) % pk.n_2
+    if n is not None:  # No pk used, just modulus
+        return (m1 * m2) % (n * n)
+
+    return (m1 * m2) % pk.n_2  # pk used
 
 
-def secure_scalar_mult(m1, c, pk):
+def secure_scalar_mult(m1, c, pk, n=None):
     """
     Performs a secure scalar multiplication
+    :param n: Modulus. Is only used when no pk is set
     :param m1: First encrypted message
     :param c: Scalar variable to be used in the multiplication
     :param pk: Public Key
     :return:
     """
-    return int(square_mult(m1, c, pk.n_2))
+    if n is not None:  # No pk used, just modulus
+        return int(square_mult(m1, c, n * n))
+
+    return int(square_mult(m1, c, pk.n_2))  # pk used
 
 
-def secure_subst(m1, m2, pk):
+def secure_subst(m1, m2, pk, n=None):
     """
     Performs a Secure Subtraction
+    :param n: Modulus. Is only used when no pk is set
     :param m1: First encrypted message
     :param m2: Second encrypted message
     :param pk: Public Key
     :return:
     """
     m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
-    return (m1 * m2_aux) % pk.n_2
+
+    if n is not None:  # No pk used, just modulus
+        return (m1 * m2_aux) % (n * n)
+
+    return (m1 * m2_aux) % pk.n_2  # pk used
 
 
 def num_to_bin(num):
@@ -232,89 +245,120 @@ def fill_left_zeros(b_num, amount):
     :param amount: Number of zeros to be added
     :return: The new Bit String with the zeros added to the left
     """
-    return b_num.zfill(amount)
+    return "0" * amount + str(b_num)  # Append the zeros to the left
 
 
 def set_b_len(b_num1, b_num2):
-    print(b_num1)
-    print(b_num2)
-
+    """
+    Equal the size of two bit strings by adding zeros to the left
+    :param b_num1: First Bit String
+    :param b_num2: Second String
+    :return: The new Bit Streams with the same length
+    """
     # Obtain the length of the bit strings
     b_len1, b_len2 = len(b_num1), len(b_num2)
 
     # First bit string larger
     if b_len1 > b_len2:
         b_len_max = b_len1
-        b_len2 = fill_left_zeros(b_len2, b_len_max)
+        b_num2 = fill_left_zeros(b_num2, b_len_max - len(b_num2))
 
     # Second bit string larger
     elif b_len2 > b_len1:
         b_len_max = b_len2
-        b_len1 = fill_left_zeros(b_len1, b_len_max)
+        b_num1 = fill_left_zeros(b_num1, b_len_max - len(b_num1))
 
-    # Same length
-    else:
-        b_len_max = b_len1
-
-    return b_num1, b_num2, b_len_max
+    return str(b_num1), str(b_num2), len(b_num1)
 
 
-def max_len(num1, num2):
-    # Calculate the maximum length
-    if num1 > num2:
-        len_max = len(num1)
-    else:
-        len_max = len(num2)
-
-    return len_max
-
-
-def calc_z(enc1, enc2):
-    # Calculate the maximum length of the encryption messages
-    l_length = max_len(enc1, enc2)
-
+def calc_z(enc1, enc2, b_len, pk, magic_length, sk):
     # First addition
-    two_l = 2 ** l_length
-    add = secure_addition(two_l, enc1, two_l)
+    # two_l = int(num_to_bin(2 ** b_len))
+
+    # print(two_l)
+    print("Calc z")
+
+    two_l = 2 ** magic_length
+    print("Magic: ", magic_length)
+    print("Two_l: ", two_l)
+
+    print("Encrypting ", two_l)
+
+    two_l_enc = enc(two_l, pk)
+
+    print("Output of enc: ", two_l_enc)
+
+    two_l_enc = int(num_to_bin(two_l_enc))
+
+    print("Output of bin: ", two_l_enc)
+
+    aux = int(str(two_l_enc), 2)
+
+    print("Output of bin back to num: ", aux)
+
+    aux = dec(aux, sk, pk)
+
+    print("Back to original: ", aux)
+    print()
+
+    print("Two_l_enc", two_l_enc)
+    print("Enc1: ", enc1)
+
+    add = secure_addition(two_l_enc, enc1, None, n=b_len)
+
+    print("Result from add: ", add)
+
+    return add, None
 
     # Subtraction
     z = secure_subst(add, enc2, two_l)
     return z, two_l
 
 
-def sqp(num1, num2):
+def sqp(num1, num2, pk, sk, magic_length):
     """
     Performs the Secure Comparison Protocol
     :param num1: First number to be compared
     :param num2: Second number to be compared
     :return:
     """
-    # Calculate the z value and obtain the new modulus
-    # TODO This is done with the bit strings, then after num_to_bin
-    z, two_l = calc_z(num1, num2)
+
+    au = enc(2 ** magic_length, pk)
+    add = secure_addition(au, num1, pk)
+
+    print(dec(add,sk, pk))
+
+
 
     # Obtain the bit representation of the numbers
-    b_num1 = num_to_bin(num1)
-    b_num2 = num_to_bin(num2)
+    b_num1 = str(num_to_bin(num1))
+    b_num2 = str(num_to_bin(num2))
 
-    print(b_num1)
-    print(b_num2)
+    aux = int(str(b_num1), 2)
 
-    b_num1 = map(str, b_num1)
-    b_num2 = map(str, b_num2)
+    aux = dec(int(aux), sk, pk)
 
-    print(b_num1)
-    print(b_num2)
+    print("Original: {}".format(aux))
 
     # Obtain the bit string with the same length
     b_num1, b_num2, b_len = set_b_len(b_num1, b_num2)
 
-    print(b_num1)
-    print(b_num2)
+    # print(b_num1)
+    # print(b_num2)
 
-    b_len1 = len(b_num1)
-    b_len2 = len(b_num2)
+    print("Length of bits: {}\n".format(b_len))
 
-    # mod_l = square_mult(2, )
+    # Calculate the z value and obtain the new modulus
+    z, two_l = calc_z(int(b_num1), int(b_num2), b_len, pk, magic_length, sk)
+
+    print("\nTEST")
+
+    # z_num = int(str(z), 2)
+
+    # print("Aux: ", aux)
+
+    z_final = dec(z, sk, pk)
+
+    print("Add: ", z_final)
 
     return 0
