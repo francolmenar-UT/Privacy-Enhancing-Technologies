@@ -221,8 +221,65 @@ def num_to_bin(num):
     :param num: Number to be converted to Bit String
     :return: The resulting Bit String
     """
-    b_num1 = bin(num)  # Num to bit string
-    return b_num1[:0] + b_num1[0 + 2:]  # Remove first two characters to have the correct bit array
+    b_num = bin(num)  # Num to bit string
+    return b_num[:0] + b_num[0 + 2:]  # Remove first two characters to have the correct bit array
+
+
+def fill_left_zeros(b_num, amount):
+    """
+    Fill with zeros at the left of the Bit String
+    :param b_num: Bit String to be used
+    :param amount: Number of zeros to be added
+    :return: The new Bit String with the zeros added to the left
+    """
+    return b_num.zfill(amount)
+
+
+def set_b_len(b_num1, b_num2):
+    print(b_num1)
+    print(b_num2)
+
+    # Obtain the length of the bit strings
+    b_len1, b_len2 = len(b_num1), len(b_num2)
+
+    # First bit string larger
+    if b_len1 > b_len2:
+        b_len_max = b_len1
+        b_len2 = fill_left_zeros(b_len2, b_len_max)
+
+    # Second bit string larger
+    elif b_len2 > b_len1:
+        b_len_max = b_len2
+        b_len1 = fill_left_zeros(b_len1, b_len_max)
+
+    # Same length
+    else:
+        b_len_max = b_len1
+
+    return b_num1, b_num2, b_len_max
+
+
+def max_len(num1, num2):
+    # Calculate the maximum length
+    if num1 > num2:
+        len_max = len(num1)
+    else:
+        len_max = len(num2)
+
+    return len_max
+
+
+def calc_z(enc1, enc2):
+    # Calculate the maximum length of the encryption messages
+    l_length = max_len(enc1, enc2)
+
+    # First addition
+    two_l = 2 ** l_length
+    add = secure_addition(two_l, enc1, two_l)
+
+    # Subtraction
+    z = secure_subst(add, enc2, two_l)
+    return z, two_l
 
 
 def sqp(num1, num2):
@@ -232,6 +289,32 @@ def sqp(num1, num2):
     :param num2: Second number to be compared
     :return:
     """
-    print(num_to_bin(num1))
+    # Calculate the z value and obtain the new modulus
+    # TODO This is done with the bit strings, then after num_to_bin
+    z, two_l = calc_z(num1, num2)
+
+    # Obtain the bit representation of the numbers
+    b_num1 = num_to_bin(num1)
+    b_num2 = num_to_bin(num2)
+
+    print(b_num1)
+    print(b_num2)
+
+    b_num1 = map(str, b_num1)
+    b_num2 = map(str, b_num2)
+
+    print(b_num1)
+    print(b_num2)
+
+    # Obtain the bit string with the same length
+    b_num1, b_num2, b_len = set_b_len(b_num1, b_num2)
+
+    print(b_num1)
+    print(b_num2)
+
+    b_len1 = len(b_num1)
+    b_len2 = len(b_num2)
+
+    # mod_l = square_mult(2, )
 
     return 0
