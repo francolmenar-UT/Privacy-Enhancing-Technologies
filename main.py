@@ -90,7 +90,7 @@ def test_comp():
 def comp():
     pk, sk = key_gen()
 
-    num1, num2 = 10, 5
+    num1, num2 = 150000000, 700
 
     print("\tComparing {} and {}\n".format(num1, num2))
 
@@ -99,8 +99,7 @@ def comp():
 
     magic_length = max(
         len(str(num_to_bin(num1))),
-        len(str(num_to_bin(num2)))) + 1
-
+        len(str(num_to_bin(num2))))
     print(magic_length)
 
     result = sqp(num1_enc, num2_enc, pk, sk, magic_length)
