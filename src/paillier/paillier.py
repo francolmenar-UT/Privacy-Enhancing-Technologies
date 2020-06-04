@@ -1,9 +1,9 @@
 from src.constants.const import KEY_LEN, SEC_PARAM
 from src.functions.square_mult import square_mult
 from src.paillier.paillier_key import *
+from decimal import *
 
 import random
-
 import secrets
 
 
@@ -13,7 +13,7 @@ def calc_g(num):
     :param num: In this case it is n
     :return: g = n + 1
     """
-    return num + 1  # Following advice from the statement
+    return num + 1  # Following the advice from the statement
 
 
 def calc_l(x, n):
@@ -34,9 +34,6 @@ def calc_lambda(p_1, p_2):
     :param p_2: Second prime number
     :return: Lambda
     """
-    #
-    # print("p: ", p_1)
-    # print("q: ", p_2)
     return (p_1 - 1) * (p_2 - 1)
 
 
@@ -70,22 +67,24 @@ def get_prime(p_len):
     :param p_len: The length of the prime numbers in bits
     :return: The random prime number
     """
-    # print("Length: ", int(p_len))
+    getcontext().prec = 10  # Set precision to use Decimal
 
-    lower_bound = (2 ** (p_len - 1)) + 1
+    # Calculate 2^p_len to avoid recalculating it
+    two_to_len = Decimal(2) ** Decimal(p_len)
+    two_to_len_minus = Decimal(2) ** Decimal(p_len - 1)
 
-    num = random.randint(int(lower_bound), 2 ** p_len)
-    # num = secrets.randbits(int(p_len))  # Create random number up to len bits
-    # print(num)
+    # The primes have to have half the size from the key
+    lower_bound = two_to_len_minus + 1
+
+    # Generate initial random number
+    p_num = random.randint(lower_bound, two_to_len)
 
     # Check until a prime number is found
-    while not is_prime(num, 128):
-        num = random.randint(int(lower_bound), 2 ** p_len)
-        # num = secrets.randbits(int(p_len))  # Create a new random number to check
+    while not is_prime(p_num, 128):
+        # Calculate a new random number
+        p_num = random.randint(int(lower_bound), two_to_len)
 
-    # print("Prime: ", num)
-    # print("Prime bin: ", bin(num))
-    return num
+    return p_num  # Return obtained prime number
 
 
 def is_prime(n, t=128):
@@ -174,20 +173,17 @@ def enc(msg, pk):
     :param pk: Public key to be used in the encryption
     :return: The encrypted value
     """
-    rdn = secrets.randbelow(pk.n)  # Get a random value from 0 to n
-    # print("Random: ", rdn)
+    # Get a random value from 0 to n
+    rdn = secrets.randbelow(pk.n)
 
-    g_m = square_mult(pk.g, msg, pk.n_2)  # Calculate exponential values
-    # g_m = pk.g ** msg
+    # Calculate the exponential values
+    g_m = square_mult(pk.g, msg, pk.n_2)
     r_n = square_mult(rdn, pk.n, pk.n_2)
-    # r_n = rdn ** pk.n
 
-    # print("G_m: ", g_m)
-    # print("R_n: ", r_n)
-    # print("R_n: ", r_n)
-    enc_msg = (g_m * r_n) % (pk.n * pk.n)
-    # print("Encrypt: ", enc_msg)
-    return enc_msg
+    # Calculate the final value
+    enc_msg = g_m * r_n % pk.n_2
+
+    return enc_msg  # Return the message encrypted
 
 
 def dec(enc_msg, sk, pk):
@@ -197,23 +193,18 @@ def dec(enc_msg, sk, pk):
     :param enc_msg: Encrypted message
     :param sk: Secret Key
     :param pk: Public Key
-    :return:
+    :return: The decrypted message
     """
-    x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
-    # print("Enc: ", enc_msg)
-    # print("Lambda: ", sk.lamb)
-    # x = enc_msg ** sk.lamb
-    # print("x 1: ", x)
-    x = x % pk.n_2
-    # print("x 2: ", x)
+    # Calculate the x value from L(x)
+    x = square_mult(enc_msg, sk.lamb, pk.n_2)
+
+    # Calculate3 L(x)
     l_result = calc_l(x, pk.n)
-    # print("L(x): ", l_result)
-    dec_aux = l_result * sk.mu
-    # print("L(x) * mu: ", dec_aux)
-    dec_msg = dec_aux % pk.n
-    # print("Dec msg in: ", dec_msg)
-    # print("n: ", pk.n)
-    return dec_msg  # Calculate the resulting value
+
+    # Calculate the final formula to get the decrypted message
+    dec_msg = l_result * sk.mu % pk.n
+
+    return dec_msg
 
 
 def secure_addition(m1, m2, pk, n=None):
@@ -223,7 +214,7 @@ def secure_addition(m1, m2, pk, n=None):
     :param m1: First encrypted message
     :param m2: Second encrypted message
     :param pk: Public Key
-    :return:
+    :return: The addition performed
     """
     if n is not None:  # No pk used, just modulus
         return (m1 * m2) % (n * n)
@@ -238,7 +229,7 @@ def secure_scalar_mult(m1, c, pk, n=None):
     :param m1: First encrypted message
     :param c: Scalar variable to be used in the multiplication
     :param pk: Public Key
-    :return:
+    :return: The scalar multiplication performed
     """
     if n is not None:  # No pk used, just modulus
         return int(square_mult(m1, c, n * n))
@@ -253,15 +244,15 @@ def secure_subst(m1, m2, pk, n=None):
     :param m1: First encrypted message
     :param m2: Second encrypted message
     :param pk: Public Key
-    :return:
+    :return: The subtraction performed
     """
     if n is not None:  # No pk used, just modulus
         m2_aux = int(square_mult(m2, n - 1, n * n))
         return (m1 * m2_aux) % (n * n)
 
-    else:
+    else:  # PK used
         m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
-        return (m1 * m2_aux) % pk.n_2  # pk used
+        return (m1 * m2_aux) % pk.n_2
 
 
 def num_to_bin(num):

@@ -8,6 +8,8 @@ from src.paillier.paillier import *
 
 class bcolors:
     OK = '\033[92m'
+    GREEN = '\033[32m'
+    RED = '\033[31m'
     WARN = '\033[93m'
     ERR = '\033[31m'
     UNDERLINE = '\033[4m'
@@ -88,12 +90,12 @@ def test_pail():
         msg_enc = enc(TEST_MSG, pk)  # Encrypt Test Message
         msg_dec = dec(msg_enc, sk, pk)  # Decrypt Test Message
 
-        if msg_dec != 100:  # Error found - Not the same decryption as expected
+        if msg_dec != TEST_MSG:  # Error found - Not the same decryption as expected
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print("Wrong decrypt:", msg_dec)
+            print("{}Wrong decrypt: {}{}".format(bcolors.RED, msg_dec, bcolors.END))
             return  # Finish tests
 
-    print(f"{bcolors.PASS}No error while creating the keys-enc-dec {TICK}{bcolors.END}")  # Tests passed
+    print(f"{bcolors.GREEN}No error while creating the keys-enc-dec {TICK}{bcolors.END}")  # Tests passed
 
 
 @main.command(help='Run the Secure Comparison Protocol')
