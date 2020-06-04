@@ -101,10 +101,10 @@ def comp(verbose=False, debug=False):
     print("{}{} Results from Secure Comparison Protocol {}{}\n".format(bcolors.BLUE, SQP_TXT_AUX, SQP_TXT_AUX,
                                                                        bcolors.END))
     if result_cpm == 1:  # First Number larger
-        print("{}{} is larger than {}{}".format(bcolors.LIGHT_BLUE, TEST_NUM1, TEST_NUM2, bcolors.END))
+        print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, TEST_NUM1, TEST_NUM2, bcolors.END))
 
     elif result_cpm == 0:  # Second Number larger
-        print("{} is larger than {}".format(TEST_NUM2, TEST_NUM1))
+        print("{} is larger or equal than {}".format(TEST_NUM2, TEST_NUM1))
 
     else:  # Error
         print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
@@ -119,21 +119,50 @@ def run_timer(l=None):
     f = Figlet(font='slant')  # Useless cool text
     print(f.renderText('Run Timer'))
 
-    print(l)
+    val_list = []  # List of values to be used
 
-    # Check if all the lengths have to be run
+    # Run all the different lengths
     if l is None:
+        # Go through all the different lengths
         for l_i in TIM_L:
-            lower_bound = two_to_len_minus + 1
+            val_i = []  # List with the pairs of elements for the length i
+            lower_bound = 2 ** (l_i - 1) + 1  # 2^(L_1 - 1) + 1
+            upper_bound = 2 ** l_i  # 2^(L_1)
 
-            # Generate initial random number
-            p_num = random.randint(lower_bound, two_to_len)
+            # For each length, go through all the different values to be created
+            # The values are organized in pairs of elements
+            for r_i in range(0, int(TIM_PAIRS)):
+                # Generate the pair of values
+                num1 = random.randint(lower_bound, upper_bound)
+                num2 = random.randint(lower_bound, upper_bound)
 
+                val_i.append([num1, num2])  # Add the new pair of elements created
+
+            val_list.append(val_i)  # Add the new list of pairs of values of length l_i
+
+        print(val_list)
+
+    # Run just the selected lengths
     else:
-        print(l)
+        l_split = l.split(",")
+        l_list = []
+        try:
+            for l_i in l_split:
+                l_int = int(l_i)
+                if l_int in l_list:
+                    print("Repeated length")
+                    return -1
+                if l_int in TIM_L:
+                    l_list.append(l_int)
+                else:
+                    print("Wrong length")
+                    return -1
+        except:
+            print("Wrong format for the length")
+            return -1
 
-
-
+        l_list.sort()
+        # TODO CREATE A METHOD WITH THE ABOVE LOOP TO CALL IT AND GENERATING THE PAIRS OF VALUES
     return 0
 
 
