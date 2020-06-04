@@ -27,6 +27,22 @@ def pail():
     msg_dec = dec(msg_enc, sk, pk)
     print("Message decrypted: ", msg_dec)
 
+    print(msg_enc)
+    pk.toString()
+    sk.toString()
+
+    for i in range(0, 100):
+        pk, sk = key_gen()
+        msg_enc = enc(MSG, pk)
+        msg_dec = dec(msg_enc, sk, pk)
+
+        if msg_dec != 100:
+            print(msg_enc)
+            pk.toString()
+            sk.toString()
+
+        print(msg_dec)
+
 
 @main.command(help='Run the Secure Comparison Protocol')
 def comp():

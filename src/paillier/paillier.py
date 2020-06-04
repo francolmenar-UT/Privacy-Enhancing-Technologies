@@ -23,7 +23,7 @@ def calc_l(x, n):
     :param n:
     :return: L(x) result
     """
-    return (x - 1) / n
+    return (x - 1) // n
 
 
 def calc_lambda(p_1, p_2):
@@ -34,6 +34,9 @@ def calc_lambda(p_1, p_2):
     :param p_2: Second prime number
     :return: Lambda
     """
+    # print("Lamda")
+    # print(p_1)
+    # print(p_2)
     return (p_1 - 1) * (p_2 - 1)
 
 
@@ -67,12 +70,21 @@ def get_prime(p_len):
     :param p_len: The length of the prime numbers in bits
     :return: The random prime number
     """
-    num = secrets.randbits(int(p_len))  # Create random number up to len bits
+    # print("Length: ", int(p_len))
+
+    lower_bound = (2 ** (p_len - 1)) + 1
+
+    num = random.randint(int(lower_bound), 2 ** p_len)
+    # num = secrets.randbits(int(p_len))  # Create random number up to len bits
+    # print(num)
 
     # Check until a prime number is found
     while not is_prime(num, 128):
-        num = secrets.randbits(int(p_len))  # Create a new random number to check
+        num = random.randint(int(lower_bound), 2 ** p_len)
+        # num = secrets.randbits(int(p_len))  # Create a new random number to check
 
+    # print("Prime: ", num)
+    # print("Prime bin: ", bin(num))
     return num
 
 
@@ -143,9 +155,6 @@ def key_gen():
             p = get_prime(KEY_LEN / 2)  # Each prime number has the half of the key's bit length
             q = get_prime(KEY_LEN / 2)
             mu = -1  # To avoid infinite loop
-            print(p)
-            print(q)
-            print("While p")
 
         lamb = calc_lambda(p, q)  # Calculate lambda
 
@@ -181,7 +190,8 @@ def dec(enc_msg, sk, pk):
     :param pk: Public Key
     :return:
     """
-    x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
+    # x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
+    x = enc_msg ** sk.lamb % pk.n_2
     return int(calc_l(x, pk.n) * sk.mu % pk.n)  # Calculate the resulting value
 
 
