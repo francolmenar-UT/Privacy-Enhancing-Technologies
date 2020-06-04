@@ -4,33 +4,7 @@ import click
 from pyfiglet import Figlet
 from src.constants.const import *
 from src.paillier.paillier import *
-
-
-class bcolors:
-    OK = '\033[92m'
-    GREEN = '\033[32m'
-    RED = '\033[31m'
-    WARN = '\033[93m'
-    ERR = '\033[31m'
-    UNDERLINE = '\033[4m'
-    ITALIC = '\x1B[3m'
-    BOLD = '\033[1m'
-    LIGHT_BLUE = '\033[34m'
-    BLUE = '\033[94m'
-    ENDC = '\033[0m'
-
-    HEADER = '\033[95m' + BOLD
-    PASS = OK + BOLD
-    FAIL = ERR + BOLD
-
-    OKMSG = BOLD + OK + u'\u2705' + "  "
-    ERRMSG = BOLD + FAIL + u"\u274C" + "  "
-    WAITMSG = BOLD + WARN + u'\u231b' + "  "
-
-    HELP = WARN
-    BITALIC = BOLD + ITALIC
-    BLUEIC = BITALIC + OK
-    END = ENDC
+from src.functions.bcolors import bcolors
 
 
 def test_int_comp():
@@ -121,7 +95,7 @@ def comp(verbose=False, debug=False):
     msg_len = max(len(str(num_to_bin(TEST_NUM1))), len(str(num_to_bin(TEST_NUM2))))
 
     # Call to the Secure Comparison Protocol method
-    result_cpm = sqp(num1_enc, num2_enc, pk, sk, msg_len)
+    result_cpm = sqp(num1_enc, num2_enc, pk, sk, msg_len, verbose, debug)
 
     # Printing the result of the comparison
     print("{}{} Results from Secure Comparison Protocol {}{}\n".format(bcolors.BLUE, SQP_TXT_AUX, SQP_TXT_AUX,
@@ -133,7 +107,7 @@ def comp(verbose=False, debug=False):
         print("{} is larger than {}".format(TEST_NUM2, TEST_NUM1))
 
     else:  # Error
-        print(f"{bcolors.ERR}Incorrect result from comparison{bcolors.END}")
+        print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
 
 
 @main.command(help='Generates the Graphs from the data')
