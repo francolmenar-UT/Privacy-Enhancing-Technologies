@@ -34,9 +34,9 @@ def calc_lambda(p_1, p_2):
     :param p_2: Second prime number
     :return: Lambda
     """
-    # print("Lamda")
-    # print(p_1)
-    # print(p_2)
+    #
+    # print("p: ", p_1)
+    # print("q: ", p_2)
     return (p_1 - 1) * (p_2 - 1)
 
 
@@ -175,10 +175,19 @@ def enc(msg, pk):
     :return: The encrypted value
     """
     rdn = secrets.randbelow(pk.n)  # Get a random value from 0 to n
+    # print("Random: ", rdn)
 
     g_m = square_mult(pk.g, msg, pk.n_2)  # Calculate exponential values
+    # g_m = pk.g ** msg
     r_n = square_mult(rdn, pk.n, pk.n_2)
-    return (g_m * r_n) % pk.n_2
+    # r_n = rdn ** pk.n
+
+    # print("G_m: ", g_m)
+    # print("R_n: ", r_n)
+    # print("R_n: ", r_n)
+    enc_msg = (g_m * r_n) % (pk.n * pk.n)
+    # print("Encrypt: ", enc_msg)
+    return enc_msg
 
 
 def dec(enc_msg, sk, pk):
@@ -190,9 +199,21 @@ def dec(enc_msg, sk, pk):
     :param pk: Public Key
     :return:
     """
-    # x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
-    x = enc_msg ** sk.lamb % pk.n_2
-    return int(calc_l(x, pk.n) * sk.mu % pk.n)  # Calculate the resulting value
+    x = square_mult(enc_msg, sk.lamb, pk.n_2)  # Calculate the value inside L(x)
+    # print("Enc: ", enc_msg)
+    # print("Lambda: ", sk.lamb)
+    # x = enc_msg ** sk.lamb
+    # print("x 1: ", x)
+    x = x % pk.n_2
+    # print("x 2: ", x)
+    l_result = calc_l(x, pk.n)
+    # print("L(x): ", l_result)
+    dec_aux = l_result * sk.mu
+    # print("L(x) * mu: ", dec_aux)
+    dec_msg = dec_aux % pk.n
+    # print("Dec msg in: ", dec_msg)
+    # print("n: ", pk.n)
+    return dec_msg  # Calculate the resulting value
 
 
 def secure_addition(m1, m2, pk, n=None):

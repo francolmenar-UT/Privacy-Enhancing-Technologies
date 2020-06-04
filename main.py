@@ -27,19 +27,28 @@ def pail():
     msg_dec = dec(msg_enc, sk, pk)
     print("Message decrypted: ", msg_dec)
 
-    print(msg_enc)
-    pk.toString()
-    sk.toString()
+    # print(msg_enc)
+    # pk.toString()
+    # sk.toString()
 
-    for i in range(0, 100):
+    for i in range(0, 300):
         pk, sk = key_gen()
         msg_enc = enc(MSG, pk)
+        # print("Encrypted msg: ", msg_enc)
         msg_dec = dec(msg_enc, sk, pk)
+        # print("Dec msg: ", msg_dec)
 
         if msg_dec != 100:
-            print(msg_enc)
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("Wrong decrypt:", msg_dec)
+            print("Again")
+            msg_enc = enc(MSG, pk)
+            msg_dec = dec(msg_enc, sk, pk)
+            print("Dec again: ", msg_dec)
+
             pk.toString()
             sk.toString()
+            return
 
         print(msg_dec)
 
