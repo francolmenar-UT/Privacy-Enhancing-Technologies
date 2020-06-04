@@ -571,6 +571,7 @@ def calc_final_z(c, r, magic_length, comp_result, sk, pk):
     print(magic_length)
 
     print("Final result: ", dec(z, sk, pk) >> magic_length)
+    return dec(z, sk, pk) >> magic_length
 
 
 def sqp(num1, num2, pk, sk, magic_length):
@@ -596,6 +597,6 @@ def sqp(num1, num2, pk, sk, magic_length):
 
     comp_result = check_e(e_list, pk, sk, magic_length)
 
-    calc_final_z(c, r, magic_length, comp_result, sk, pk)
+    result_cpm = calc_final_z(c, r, magic_length, comp_result, sk, pk)
 
-    return 0
+    return result_cpm

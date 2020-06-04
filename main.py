@@ -1,13 +1,37 @@
 import timeit
 
-import bcolors as bcolors
 import click
 from pyfiglet import Figlet
 from src.constants.const import *
 from src.paillier.paillier import *
 
 
-def test_comp():
+class bcolors:
+    OK = '\033[92m'
+    WARN = '\033[93m'
+    ERR = '\033[31m'
+    UNDERLINE = '\033[4m'
+    ITALIC = '\x1B[3m'
+    BOLD = '\033[1m'
+    LIGHT_BLUE = '\033[34m'
+    BLUE = '\033[94m'
+    ENDC = '\033[0m'
+
+    HEADER = '\033[95m' + BOLD
+    PASS = OK + BOLD
+    FAIL = ERR + BOLD
+
+    OKMSG = BOLD + OK + u'\u2705' + "  "
+    ERRMSG = BOLD + FAIL + u"\u274C" + "  "
+    WAITMSG = BOLD + WARN + u'\u231b' + "  "
+
+    HELP = WARN
+    BITALIC = BOLD + ITALIC
+    BLUEIC = BITALIC + OK
+    END = ENDC
+
+
+def test_int_comp():
     # TODO REMOVE
     # num1, num2 = 10, 5  # First larger
     num1, num2 = 5, 10
@@ -73,27 +97,41 @@ def test_pail():
 
 
 @main.command(help='Run the Secure Comparison Protocol')
-def comp():
-    f = Figlet(font='slant')  # Useless cool text
-    print(f.renderText('SQP'))
+@click.option('--verbose', '-v', is_flag=True, help='Set the verbose to true')
+@click.option('--debug', '-d', is_flag=True, help='Set debug to true')
+def comp(verbose=False, debug=False):
+    if debug:  # If debug is set, verbose is also used
+        verbose = True
 
+    if verbose:  # Print only if verbose flag is added in the execution command
+        f = Figlet(font='slant')  # Useless cool text
+        print(f.renderText('SQP'))
+        print("\tComparing {} and {}\n".format(TEST_NUM1, TEST_NUM2))  # Intro info message
+
+    # Key generation
     pk, sk = key_gen()
 
-    num1, num2 = 15000000, 700
+    # Encryption of the numbers to be compared
+    num1_enc = enc(TEST_NUM1, pk)
+    num2_enc = enc(TEST_NUM2, pk)
 
-    print("\tComparing {} and {}\n".format(num1, num2))
+    # Maximum length of the input messages
+    msg_len = max(len(str(num_to_bin(TEST_NUM1))), len(str(num_to_bin(TEST_NUM2))))
 
-    num1_enc = enc(num1, pk)
-    num2_enc = enc(num2, pk)
+    # Call to the Secure Comparison Protocol method
+    result_cpm = sqp(num1_enc, num2_enc, pk, sk, msg_len)
 
-    magic_length = max(
-        len(str(num_to_bin(num1))),
-        len(str(num_to_bin(num2))))
-    print(magic_length)
+    # Printing the result of the comparison
+    print("{}{} Results from Secure Comparison Protocol {}{}\n".format(bcolors.BLUE, SQP_TXT_AUX, SQP_TXT_AUX,
+                                                                       bcolors.END))
+    if result_cpm == 1:  # First Number larger
+        print("{}{} is larger than {}{}".format(bcolors.LIGHT_BLUE, TEST_NUM1, TEST_NUM2, bcolors.END))
 
-    result = sqp(num1_enc, num2_enc, pk, sk, magic_length)
+    elif result_cpm == 0:  # Second Number larger
+        print("{} is larger than {}".format(TEST_NUM2, TEST_NUM1))
 
-    # print("Result: ", result)
+    else:  # Error
+        print(f"{bcolors.ERR}Incorrect result from comparison{bcolors.END}")
 
 
 @main.command(help='Generates the Graphs from the data')
