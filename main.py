@@ -27,16 +27,10 @@ def pail():
     msg_dec = dec(msg_enc, sk, pk)
     print("Message decrypted: ", msg_dec)
 
-    # print(msg_enc)
-    # pk.toString()
-    # sk.toString()
-
-    for i in range(0, 300):
+    for i in range(0, 500):
         pk, sk = key_gen()
         msg_enc = enc(MSG, pk)
-        # print("Encrypted msg: ", msg_enc)
         msg_dec = dec(msg_enc, sk, pk)
-        # print("Dec msg: ", msg_dec)
 
         if msg_dec != 100:
             print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -53,17 +47,61 @@ def pail():
         print(msg_dec)
 
 
+def test_comp():
+    # num1, num2 = 10, 5  # First larger
+    num1, num2 = 5, 10
+
+    print("Bin numbs:")
+    print(num_to_bin(num1))
+    print(num_to_bin(num2))
+    print(num_to_bin(2 ** 4))
+    print()
+
+    magic_length = max(
+        len(str(num_to_bin(num1))),
+        len(str(num_to_bin(num2)))) + 1
+
+    # magic_length = len(str(num_to_bin(2 ** 4)))
+
+    aux = 2 ** 4 + num1 - num2
+    print(aux)
+
+    aux_bin = num_to_bin(aux)
+    aux_bin = fill_left_zeros(aux_bin, magic_length - len(str(aux_bin)))
+    print(aux_bin)
+    print(aux_bin[0])
+    print()
+
+    print("Change")
+
+    num1, num2 = 10, 5
+
+    aux = 2 ** 4 + num1 - num2
+    print(aux)
+
+    aux_bin = num_to_bin(aux)
+    print(aux_bin)
+    print(aux_bin[0])
+
+    return
+
+
 @main.command(help='Run the Secure Comparison Protocol')
 def comp():
     pk, sk = key_gen()
 
-    num1, num2 = 5, 10
+    num1, num2 = 10, 5
+
     print("\tComparing {} and {}\n".format(num1, num2))
 
     num1_enc = enc(num1, pk)
     num2_enc = enc(num2, pk)
 
-    magic_length = 4
+    magic_length = max(
+        len(str(num_to_bin(num1))),
+        len(str(num_to_bin(num2)))) + 1
+
+    print(magic_length)
 
     result = sqp(num1_enc, num2_enc, pk, sk, magic_length)
 

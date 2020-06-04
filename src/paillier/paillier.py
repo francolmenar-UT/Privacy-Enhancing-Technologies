@@ -533,7 +533,6 @@ def calc_e_list(r, c_encrypt, pk, magic_length, sk):
 
 def check_e(e_list, pk, sk, magic_length):
     print("\n++++++++++++++++ check_e ++++++++++++++++")
-    print(pk.n)
 
     for i, val in enumerate(e_list):
         e_i = dec(e_list[i], sk, pk)
