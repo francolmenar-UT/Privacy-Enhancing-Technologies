@@ -594,25 +594,30 @@ def check_e(e_list, pk, sk, msg_len, debug):
 def calc_final_z(c, r, msg_len, comp_result, sk, pk, debug):
     if debug:
         print("{}{} calc_final_z {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-        print(dec(c, sk, pk))
-        print(r)
+        print("Dec of c: {}".format(dec(c, sk, pk)))
+        print("Received r: {}".format(r))
 
+    # Encrypt the value r to operate with it
     enc_r = enc(r, pk)
-    z = secure_subst(c, enc_r, pk)
+
+    # subs = [c] - [r]
+    subs = secure_subst(c, enc_r, pk)
+
+    # right_add =  lambda{0,1} * 2^l
     right_add = comp_result * 2 ** msg_len
+    # subs = secure_addition(subs, right_add, pk)
 
-    # z = secure_addition(z, right_add, pk)
-
-    z = dec(z, sk, pk) >> msg_len
+    # Get the most significant bit of z
+    z = dec(subs, sk, pk) >> msg_len
 
     if debug:
-        print("Z dec: ", dec(z, sk, pk))
-        print(len(str(num_to_bin(dec(z, sk, pk)))))
-        print(len(str(num_to_bin(dec(c, sk, pk)))))
+        print("\nDec of z: ", dec(z, sk, pk))
+        print("Len of resulting operation: {}".format(len(str(subs))))
+        print("Len of dec c: {}".format(len(str(num_to_bin(dec(c, sk, pk))))))
 
-        print(msg_len)
+        print("Length of the original msg: {}".format(msg_len))
 
-        print("Final result: ", z)
+        print("Final z: {}".format(z))
 
     return z
 

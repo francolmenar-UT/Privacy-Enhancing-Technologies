@@ -110,6 +110,33 @@ def comp(verbose=False, debug=False):
         print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
 
 
+@main.command(help='Runs the SQP and stores the time data into csv files')
+@click.option('-l', required=False)
+def run_timer(l=None):
+    """
+    Generates the Graphs
+    """
+    f = Figlet(font='slant')  # Useless cool text
+    print(f.renderText('Run Timer'))
+
+    print(l)
+
+    # Check if all the lengths have to be run
+    if l is None:
+        for l_i in TIM_L:
+            lower_bound = two_to_len_minus + 1
+
+            # Generate initial random number
+            p_num = random.randint(lower_bound, two_to_len)
+
+    else:
+        print(l)
+
+
+
+    return 0
+
+
 @main.command(help='Generates the Graphs from the data')
 def graph():
     """
