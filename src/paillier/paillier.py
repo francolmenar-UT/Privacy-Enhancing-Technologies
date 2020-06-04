@@ -566,6 +566,7 @@ def calc_final_z(c, r, magic_length, comp_result, sk, pk):
 
     print("Z dec: ", dec(z, sk, pk))
     print(len(str(num_to_bin(dec(z, sk, pk)))))
+    print(len(str(num_to_bin(dec(c, sk, pk)))))
 
     print(magic_length)
 

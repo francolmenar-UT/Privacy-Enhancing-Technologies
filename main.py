@@ -1,53 +1,14 @@
 import timeit
 
+import bcolors as bcolors
 import click
 from pyfiglet import Figlet
 from src.constants.const import *
 from src.paillier.paillier import *
 
 
-@click.group()
-def main():
-    pass
-
-
-@main.command(help='Run the Paillier Encryption')
-def pail():
-    print("Gen..")
-    pk, sk = key_gen()
-
-    # pk.toString()
-    # sk.toString()
-
-    print("Message to encrypt: ", MSG)
-
-    msg_enc = enc(MSG, pk)
-    print("Encrypted message: ", msg_enc)
-
-    msg_dec = dec(msg_enc, sk, pk)
-    print("Message decrypted: ", msg_dec)
-
-    for i in range(0, 500):
-        pk, sk = key_gen()
-        msg_enc = enc(MSG, pk)
-        msg_dec = dec(msg_enc, sk, pk)
-
-        if msg_dec != 100:
-            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-            print("Wrong decrypt:", msg_dec)
-            print("Again")
-            msg_enc = enc(MSG, pk)
-            msg_dec = dec(msg_enc, sk, pk)
-            print("Dec again: ", msg_dec)
-
-            pk.toString()
-            sk.toString()
-            return
-
-        print(msg_dec)
-
-
 def test_comp():
+    # TODO REMOVE
     # num1, num2 = 10, 5  # First larger
     num1, num2 = 5, 10
 
@@ -86,11 +47,39 @@ def test_comp():
     return
 
 
+@click.group()
+def main():
+    pass
+
+
+@main.command(help='Run execution tests to check that the correct value is obtained in the tests')
+def test_pail():
+    f = Figlet(font='slant')  # Useless cool text
+    print(f.renderText('Paillier Test'))
+    print("Executing...")
+
+    # Run the Paillier encryption as many times as it is defined in TEST_RANGE
+    for i in range(0, TEST_RANGE):
+        pk, sk = key_gen()  # Create key
+        msg_enc = enc(TEST_MSG, pk)  # Encrypt Test Message
+        msg_dec = dec(msg_enc, sk, pk)  # Decrypt Test Message
+
+        if msg_dec != 100:  # Error found - Not the same decryption as expected
+            print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+            print("Wrong decrypt:", msg_dec)
+            return  # Finish tests
+
+    print(f"{bcolors.PASS}No error while creating the keys-enc-dec {TICK}{bcolors.END}")  # Tests passed
+
+
 @main.command(help='Run the Secure Comparison Protocol')
 def comp():
+    f = Figlet(font='slant')  # Useless cool text
+    print(f.renderText('SQP'))
+
     pk, sk = key_gen()
 
-    num1, num2 = 150000000, 700
+    num1, num2 = 15000000, 700
 
     print("\tComparing {} and {}\n".format(num1, num2))
 
@@ -112,12 +101,10 @@ def graph():
     """
     Generates the Graphs
     """
+    f = Figlet(font='slant')  # Useless cool text
+    print(f.renderText('Graphs'))
     # create_graph()
-    print("Graph")
     return 0
 
-
-f = Figlet(font='slant')  # Useless cool text
-print(f.renderText('Paillier'))
 
 main()  # Runs the cli
