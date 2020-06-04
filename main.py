@@ -110,6 +110,34 @@ def comp(verbose=False, debug=False):
         print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
 
 
+def create_val_list(tim_l):
+    """
+    Creates a list of values with the lengths provided in the list tim_l
+    The amount of pairs of values are defined in TIM_PAIRS
+    :param tim_l: List of lengths
+    :return: A list of list with pairs
+    """
+    val_list = []  # List of values to be used
+
+    # Go through all the different lengths
+    for l_i in tim_l:
+        val_i = []  # List with the pairs of elements for the length i
+        lower_bound = 2 ** (l_i - 1) + 1  # 2^(L_1 - 1) + 1
+        upper_bound = 2 ** l_i  # 2^(L_1)
+
+        # For each length, go through all the different values to be created
+        # The values are organized in pairs of elements
+        for r_i in range(0, int(TIM_PAIRS)):
+            # Generate the pair of values
+            num1 = random.randint(lower_bound, upper_bound)
+            num2 = random.randint(lower_bound, upper_bound)
+
+            val_i.append([num1, num2])  # Add the new pair of elements created
+
+        val_list.append(val_i)  # Add the new list of pairs of values of length l_i
+    return val_list
+
+
 @main.command(help='Runs the SQP and stores the time data into csv files')
 @click.option('-l', required=False)
 def run_timer(l=None):
@@ -123,46 +151,39 @@ def run_timer(l=None):
 
     # Run all the different lengths
     if l is None:
-        # Go through all the different lengths
-        for l_i in TIM_L:
-            val_i = []  # List with the pairs of elements for the length i
-            lower_bound = 2 ** (l_i - 1) + 1  # 2^(L_1 - 1) + 1
-            upper_bound = 2 ** l_i  # 2^(L_1)
-
-            # For each length, go through all the different values to be created
-            # The values are organized in pairs of elements
-            for r_i in range(0, int(TIM_PAIRS)):
-                # Generate the pair of values
-                num1 = random.randint(lower_bound, upper_bound)
-                num2 = random.randint(lower_bound, upper_bound)
-
-                val_i.append([num1, num2])  # Add the new pair of elements created
-
-            val_list.append(val_i)  # Add the new list of pairs of values of length l_i
-
-        print(val_list)
+        # Create the list of values
+        val_list = create_val_list(TIM_L)
 
     # Run just the selected lengths
     else:
-        l_split = l.split(",")
-        l_list = []
+        l_split = l.split(",")  # Split the input by comas
+        l_list = []  # List of lengths
         try:
-            for l_i in l_split:
+            for l_i in l_split:  # Check all the input lengths
                 l_int = int(l_i)
-                if l_int in l_list:
+                if l_int in l_list:  # Repeated length error
                     print("Repeated length")
                     return -1
-                if l_int in TIM_L:
+                if l_int in TIM_L:  # Append the new length
                     l_list.append(l_int)
-                else:
+                else:  # Wrong length error
                     print("Wrong length")
                     return -1
-        except:
+        except:  # Wrong format
             print("Wrong format for the length")
             return -1
 
+        # Sort the list
         l_list.sort()
-        # TODO CREATE A METHOD WITH THE ABOVE LOOP TO CALL IT AND GENERATING THE PAIRS OF VALUES
+
+        # Create the list of values
+        val_list = create_val_list(l_list)
+
+    # Todo create the folders for the files
+    # TODO create the constants for the files
+    # TODO create the calling to the methods with the timers
+    print(val_list[0])
+
     return 0
 
 
