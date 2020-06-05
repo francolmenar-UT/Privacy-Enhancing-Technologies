@@ -4,6 +4,7 @@ import click
 import os
 from pyfiglet import Figlet
 from src.constants.const import *
+from src.graph.createGraph import create_graph
 from src.paillier.paillier import *
 from src.functions.bcolors import bcolors
 
@@ -251,7 +252,7 @@ def graph():
     """
     f = Figlet(font='slant')  # Useless cool text
     print(f.renderText('Graphs'))
-    # create_graph()
+    create_graph()
     return 0
 
 

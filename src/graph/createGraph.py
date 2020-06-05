@@ -1,101 +1,167 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 
-from src.constants.constants import *
-
-
-def single_graph(data, col, axis, axis_name, prefix, points):
-    plt_counter = 0
-    for idx, arr in enumerate(data):  # Single graphs
-        createPlots(col[0], col[1], data[idx], LABEL[idx], COLOUR[idx],
-                    axis[0], axis[1], POINT_SIZE, NAME[idx], axis_name,
-                    GRID_LINESTYLE, points)
-        plt_counter += 1
-
-        lgnd = plt.legend(loc="lower right", numpoints=1, fontsize=10)
-        for i in range(0, plt_counter):
-            lgnd.legendHandles[i]._legmarker.set_markersize(POINT_SIZE_LEGEND)
-
-        plt.savefig(IMG_FOLDER_PATH + IMG[idx] + "_" + prefix + ".png", dpi=600)
-        plt.close()
-        plt_counter = 0
+from src.constants.graph_const import *
+from src.constants.const import *
 
 
-def multiple_graph(data, col, axis, axis_name, prefix, points):
-    plt_counter = 0
-    for idx, arr in enumerate(data):  # Multiple graphs
-        name = ""
-        name_plt = ""
-        if idx == len(data) - 1:
-            break
-        else:
-            name += IMG_FOLDER_PATH + IMG[idx]
-            name_plt += NAME_AUX[idx]
-            createPlots(col[0], col[1], data[idx], LABEL[idx], COLOUR[idx],
-                        axis[0], axis[1], POINT_SIZE, NAME[idx], axis_name,
-                        GRID_LINESTYLE, points, grid_colour=GRID_COLOUR)
-            plt_counter += 1
+def readFiles(files, col, round_val=None):
+    """
+    Read a list of csv files and returns its data
+    :param round_val: It sets the decimal values to round the execution time value
+    :param files: List of file names
+    :param col: Column names
+    :return: A list with the data of each of the files
+    """
+    data = []  # Data list to return
 
-        for i in range(idx + 1, len(data)):  # Each graph prints the comparison with the following ones
-            createPlots(col[0], col[1], data[i], LABEL[i], COLOUR[i],
-                        axis[0], axis[1], POINT_SIZE, NAME[i], axis_name,
-                        GRID_LINESTYLE, points, grid_colour=GRID_COLOUR)
-            plt_counter += 1
-
-            name += " & " + IMG[i]
-            name_plt += " & \n" + NAME_AUX[i]
-
-        lgnd = plt.legend(loc="lower right", numpoints=1, fontsize=10)
-        for i in range(0, plt_counter):
-            lgnd.legendHandles[i]._legmarker.set_markersize(POINT_SIZE_LEGEND)
-
-        plt.title(name_plt)
-        plt.savefig(name + "_" + prefix + ".png", dpi=600)
-
-        plt.close()
-        plt_counter = 0
-
-
-def create_graph():
-    data_timing = readFiles([CPA_TIMING + CPA_PREFIX + ".csv",
-                             ONLINE_CPA_TIMING + ONLINE_PREFIX + ".csv"], COL_TIMING)
-
-    data_ge = readFiles([CPA_GE + CPA_PREFIX + ".csv",
-                         ONLINE_CPA_GE + ONLINE_PREFIX + ".csv"], COL_GE)
-
-    single_graph(data_timing, COL_TIMING, TIMING_AXIS, TIMING_AXIS_NM, TIMING_PREFIX, TM_POINTS)
-    single_graph(data_ge, COL_GE, GE_AXIS, GE_AXIS_NM, GE_PREFIX, GE_POINTS)
-
-    multiple_graph(data_timing, COL_TIMING, TIMING_AXIS, TIMING_AXIS_NM, TIMING_PREFIX, TM_POINTS)
-    multiple_graph(data_ge, COL_GE, GE_AXIS, GE_AXIS_NM, GE_PREFIX, GE_POINTS)
-
-
-def readFiles(files, col):
-    data = []
+    # Read the data from each of the files
     for file in files:
         data_tmp = pd.read_csv(file, sep=",", header=None, names=[col[0], col[1]])
 
-        # round numbers and convert
-        # data_tmp[c1] = round(data_tmp[c1].astype(float))
+        # Check if it has to round execution time
+        if round_val is not None:
+            data_tmp[col[1]] = data_tmp[col[1]].round(decimals=2)
 
         # insert zero in both columns at index 1
         line = pd.DataFrame({col[0]: 0, col[1]: 0}, index=[0])
         data_tmp = pd.concat([data_tmp.iloc[:0], line, data_tmp.iloc[0:]]).reset_index(drop=True)
-        data.append(data_tmp)
+
+        data.append(data_tmp)  # Add the new data from the csv file to the list
     return data
+
+
+def create_folder(folder):
+    """
+    Checks if a folder exists, if it does not it creates it
+    :param folder: Folder to be created
+    :return:
+    """
+    # Check if the folder does not exists
+    if not os.path.isdir(folder):
+        os.makedirs(folder)  # Create folder
+
+
+def single_graph(data, col, axis, axis_name,
+                 g_name, g_mode, grid_mode, colour,
+                 lgn_mode, lgn_pt_size, pt_size, labels,
+                 img_folder, img, img_type, img_size):
+    # Go through all the list of data in data - which are the number of graphs to plot
+    for idx, arr in enumerate(data):
+        # Plot counter
+        plt_counter = 0
+
+        # Create the graph
+        createPlots(col[0], col[1], data[idx], labels[idx], colour[idx],
+                    axis[0], axis[1], pt_size, g_name[idx], axis_name,
+                    grid_mode, g_mode)
+
+        # Update plot counter
+        plt_counter += 1
+
+        # Add the legend to the graph
+        lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
+
+        # Set the size of the points in the legend
+        lgnd.legendHandles[0]._legmarker.set_markersize(lgn_pt_size)
+
+        # Save graph as an image
+        plt.savefig(img_folder + img[idx] + img_type, dpi=img_size)
+        plt.close()
+
+
+def multiple_graph(data, col, axis, axis_name,
+                   g_name, g_comp_name, g_mode, grid_mode, grid_colour, colour,
+                   lgn_mode, lgn_pt_size, pt_size, labels,
+                   img_folder, img, img_type, img_size):
+    # Go through all the list of data in data - which are the number of graphs to plot
+    for idx, arr in enumerate(data):
+        # Set to initial values
+        name, name_plt, plt_counter = "", "", 0
+
+        # Do not print the last graph - it assumes that the single graphs have been plot already
+        if idx == len(data) - 1:
+            break
+
+        # Update the name for the graph
+        name += img_folder + img[idx]
+        name_plt += g_comp_name[idx]
+
+        # Create first plot
+        createPlots(col[0], col[1], data[idx], labels[idx], colour[idx],
+                    axis[0], axis[1], pt_size, g_name[idx], axis_name,
+                    grid_mode, g_mode, grid_colour=grid_colour)
+
+        # Update plot counter
+        plt_counter += 1
+
+        # Each graph prints the comparison with the following graphs
+        for i in range(idx + 1, len(data)):
+            # Add subsequent graph points to the comparison graph
+            createPlots(col[0], col[1], data[i], labels[i], colour[i],
+                        axis[0], axis[1], pt_size, g_name[i], axis_name,
+                        grid_mode, g_mode, grid_colour=grid_colour)
+            plt_counter += 1
+
+            # Update the name for the graph
+            name += " & " + img[i]
+            name_plt += " & \n" + g_comp_name[i]
+
+        # Add the legend to the graph
+        lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
+
+        # Set the size of the points in the legend
+        for i in range(0, plt_counter):
+            lgnd.legendHandles[i]._legmarker.set_markersize(lgn_pt_size)
+
+        # Set the name for the comparison graph
+        plt.title(name_plt)
+
+        # Save graph as an image
+        plt.savefig(name + img_type, dpi=img_size)
+        plt.close()
+
+
+def create_graph():
+    """
+    It creates the graphs for the CSV files created.
+    Uses the data from graph_const and const
+    """
+    # Reads the data from the csv files
+    data = readFiles([DATA_F + TIM_10_F + TIM_10_CSV,
+                      DATA_F + TIM_20_F + TIM_20_CSV,
+                      DATA_F + TIM_50_F + TIM_50_CSV,
+                      DATA_F + TIM_100_F + TIM_100_CSV,
+                      ], COL_NM, round_val=ROUND_VAL)
+
+    # Check if there is no folder for the images
+    create_folder(IMG_FOLDER_PATH)
+
+    # Creates single graphs
+    single_graph(data, COL_NM, AXIS, AXIS_NM,
+                 GRAPH_NM, PTN, GRID_DISC, COLOUR,
+                 LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
+                 IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
+
+    # Creates comparison graphs
+    multiple_graph(data, COL_NM, AXIS, AXIS_NM,
+                   GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
+                   LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
+                   IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
 
 def createPlots(c1, c2, data, label, colour,
                 x_axis, y_axis, point_size, name, axis,
-                grid_linestyle, points, grid_colour=None):
+                grid_linestyle, mode, grid_colour=None):
     x = data[c1]
     y = data[c2]
 
     x_axis = np.arange(x_axis[0], x_axis[1], x_axis[2])
     y_axis = np.arange(y_axis[0], y_axis[1], y_axis[2])
 
-    if points:
+    if mode is PTN:
         plt.plot(x, y, 'o', label=label, markersize=np.sqrt(point_size[0]), color=colour)
         # plt.plot(x, y, kind='barh, label=label, markersize=np.sqrt(point_size), color=colour)
 
@@ -104,7 +170,7 @@ def createPlots(c1, c2, data, label, colour,
         plt.fill_between(x, y, alpha=0.4, color=colour)
 
     plt.xlim([0, x_axis[1]])
-    plt.ylim([0, y_axis[1]])
+    plt.ylim([40, y_axis[1]])  # TODO SET AS AN INPUT PARAMETER
 
     plt.xticks(x_axis)
     plt.yticks(y_axis)

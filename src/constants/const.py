@@ -24,7 +24,7 @@ DEB_AUX2_TXT = "----------------"
 
 # Timing Variables
 TIM_L = [10, 20, 50, 100]  # Lengths to be tested
-TIM_AMOUNT = 4  # Total amount of numbers to be tested
+TIM_AMOUNT = 30  # Total amount of numbers to be tested
 TIM_PAIRS = TIM_AMOUNT / 2  # Amount of pairs to be tested, based on TIM_AMOUNT
 EXE_REP = 1  # Just one execution per pair of values
 
@@ -36,8 +36,10 @@ TIM_50_F = "timing_length_50/"
 TIM_100_F = "timing_length_100/"
 CREATE_FOLDERS = [DATA_F, TIM_10_F, TIM_20_F, TIM_50_F, TIM_100_F]
 
-# Files
+# CSV Files
 TIM_10_CSV = "timing_length_10.csv"
 TIM_20_CSV = "timing_length_20.csv"
 TIM_50_CSV = "timing_length_50.csv"
 TIM_100_CSV = "timing_length_100.csv"
+
+# Graph files
