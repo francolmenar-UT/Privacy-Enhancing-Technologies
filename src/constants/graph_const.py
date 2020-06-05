@@ -81,8 +81,15 @@ LGN_LR = "lower right"
 
 ############# Modes for the graphs  #############
 PTN = "POINT"
+PTN_F = "points/"
+
 LN_DISC = "LN_DISC"
+LN_DISC_F = "line_disc/"
+
 VLN = "VLN"
+VLN_F = "violin/"
+
+MODE_F = [PTN_F, LN_DISC_F, VLN_F]
 
 ############# Modes for the Grid Linestyle  #############
 GRID_DISC = '--'

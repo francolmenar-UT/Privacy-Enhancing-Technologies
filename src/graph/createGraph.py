@@ -44,10 +44,25 @@ def create_folder(folder):
         os.makedirs(folder)  # Create folder
 
 
+def update_path_mod(g_mode, img_folder):
+    if g_mode is PTN:
+        img_folder += PTN_F
+    elif g_mode is LN_DISC:
+        img_folder += LN_DISC_F
+    elif g_mode is VLN:
+        img_folder += VLN_F
+    else:
+        print("ERROR: Incorrect mode")
+    return img_folder
+
+
 def single_graph(data, col, axis, axis_name,
                  g_name, g_mode, grid_mode, colour,
                  lgn_mode, lgn_pt_size, pt_size, labels,
                  img_folder, img, img_type, img_size):
+    # Update the path to the folder with the correct mode
+    img_folder = update_path_mod(g_mode, img_folder)
+
     # Go through all the list of data in data - which are the number of graphs to plot
     for idx, arr in enumerate(data):
         # Plot counter
@@ -76,6 +91,9 @@ def multiple_graph(data, col, axis, axis_name,
                    g_name, g_comp_name, g_mode, grid_mode, grid_colour, colour,
                    lgn_mode, lgn_pt_size, pt_size, labels,
                    img_folder, img, img_type, img_size):
+    # Update the path to the folder with the correct mode
+    img_folder = update_path_mod(g_mode, img_folder)
+
     # Go through all the list of data in data - which are the number of graphs to plot
     for idx, arr in enumerate(data):
         # Set to initial values
@@ -128,6 +146,9 @@ def two_graphs(data, col, axis, axis_name,
                g_name, g_comp_name, g_mode, grid_mode, grid_colour, colour,
                lgn_mode, lgn_pt_size, pt_size, labels,
                img_folder, img, img_type, img_size):
+    # Update the path to the folder with the correct mode
+    img_folder = update_path_mod(g_mode, img_folder)
+
     # Go through all the list of data in data - which are the number of graphs to plot
     for idx, arr in enumerate(data):
         # The two last ones are already plotted
@@ -192,22 +213,24 @@ def create_graph():
 
     # Check if there is no folder for the images
     create_folder(IMG_FOLDER_PATH)
+    for mode_i in MODE_F:
+        create_folder(IMG_FOLDER_PATH + mode_i)
 
     # Creates single graphs
     single_graph(data, COL_NM, AXIS, AXIS_NM,
-                 GRAPH_NM, VLN, GRID_DISC, COLOUR,
+                 GRAPH_NM, PTN, GRID_DISC, COLOUR,
                  LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                  IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
     # Creates comparison graphs
     multiple_graph(data, COL_NM, AXIS, AXIS_NM,
-                   GRAPH_NM, GRAPH_COMP_NM, VLN, GRID_DISC, GRID_COLOUR, COLOUR,
+                   GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
                    LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                    IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
     # Creates comparison of two graphs
     two_graphs(data, COL_NM, AXIS, AXIS_NM,
-               GRAPH_NM, GRAPH_COMP_NM, VLN, GRID_DISC, GRID_COLOUR, COLOUR,
+               GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
                LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
