@@ -88,13 +88,32 @@ def test_pail():
 @main.command(help='Run the Secure Comparison Protocol')
 @click.option('--verbose', '-v', is_flag=True, help='Set the verbose to true')
 @click.option('--interactive', '-i', is_flag=True, help='Ask for the values to the user')
-def comp(input_num_1=None, input_num_2=None, verbose=False):
-    if
+def comp(input_num_1=None, input_num_2=None, verbose=False, interactive=False):
+    # Get the numbers to compare from the user
+    if interactive:
+        verbose = True  # Set verbose to true if the user is introducing the values
+
+        # Get the inputs from the user
+        try:
+            input_num_1 = int(input("First number to compare: "))
+            input_num_2 = int(int(input("Second number to compare: ")))
+
+            # Negative numbers not supported - It is not stated in the statement that they have to be supported
+            if input_num_1 < 0 or input_num_2 < 0:
+                print("{}Wrong input format: Introduce positive numbers please{}".format(bcolors.RED, bcolors.END))
+
+        # Wrong format for the inputs from the user
+        except:
+            print("{}Wrong input format{}".format(bcolors.RED, bcolors.END))
+            return
 
     if verbose:  # Print only if verbose flag is added in the execution command
         f = Figlet(font='slant')  # Useless cool text
         print(f.renderText('SQP'))
-        print("\tComparing {} and {}\n".format(TEST_NUM1, TEST_NUM2))  # Intro info message
+        if interactive:
+            print("\tComparing {} and {}\n".format(input_num_1, input_num_2))  # Intro info message
+        else:
+            print("\tComparing {} and {}\n".format(TEST_NUM1, TEST_NUM2))  # Intro info message
 
     # Check if the input to chose is the Test values or values passed as arguments
     if input_num_1 is not None and input_num_2 is not None:  # Argument values
@@ -112,7 +131,7 @@ def comp(input_num_1=None, input_num_2=None, verbose=False):
     num2_enc = enc(num2, pk)
 
     # Maximum length of the input messages
-    msg_len = max(len(str(num_to_bin(TEST_NUM1))), len(str(num_to_bin(TEST_NUM2))))
+    msg_len = max(len(str(num_to_bin(num1))), len(str(num_to_bin(num2))))
 
     # Call to the Secure Comparison Protocol method
     result_cpm = sqp(num1_enc, num2_enc, pk, sk, msg_len)
@@ -122,10 +141,10 @@ def comp(input_num_1=None, input_num_2=None, verbose=False):
         print("{}{} Results from Secure Comparison Protocol {}{}\n".format(bcolors.BLUE, SQP_TXT_AUX, SQP_TXT_AUX,
                                                                            bcolors.END))
         if result_cpm == 1:  # First Number larger
-            print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, TEST_NUM1, TEST_NUM2, bcolors.END))
+            print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, num1, num2, bcolors.END))
 
         elif result_cpm == 0:  # Second Number larger
-            print("{} is larger or equal than {}".format(TEST_NUM2, TEST_NUM1))
+            print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, num2, num1, bcolors.END))
 
         else:  # Error
             print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
