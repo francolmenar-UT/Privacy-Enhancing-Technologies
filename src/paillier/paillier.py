@@ -276,7 +276,7 @@ def fill_left_zeros(b_num, amount):
     return "0" * amount + str(b_num)  # Append the zeros to the left
 
 
-def calc_z(num1, num2, pk, msg_len, sk, debug):
+def calc_z(num1, num2, pk, msg_len):
     """
     Calculates the value "z"
     :param num1: First encrypted number to be compared
@@ -285,15 +285,6 @@ def calc_z(num1, num2, pk, msg_len, sk, debug):
     :param msg_len: Length of the original plain text
     :return:
     """
-    if debug:
-        print("{}{} calc_z {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-        print("Num1 enc: ", num1)
-        print("Num1: ", dec(num1, sk, pk))
-        print("Num2 enc: ", num2)
-        print("Num2: ", dec(num2, sk, pk))
-        print("Len: ", 2 ** msg_len)
-        print()
-
     # Encrypt 2^l
     length_enc = enc(2 ** msg_len, pk)
 
@@ -303,25 +294,10 @@ def calc_z(num1, num2, pk, msg_len, sk, debug):
     # z = [2^l] + [a] - [b]
     z = secure_subst(add, num2, pk)
 
-    if debug:
-        print("Add of {} + {} = {}".format(
-            dec(length_enc, sk, pk),
-            dec(num1, sk, pk),
-            dec(add, sk, pk)))
-
-        print("Subs of {} - {} = {}".format(
-            dec(add, sk, pk),
-            dec(num2, sk, pk),
-            dec(z, sk, pk)))
-        print()
-
-        print("Z: ", z)
-        print("Decrypted Z: ", dec(z, sk, pk))
-
     return z
 
 
-def calc_c(z, msg_len, sec_param, pk, sk, debug):
+def calc_c(z, msg_len, sec_param, pk):
     """
     Calculates the value c
     :param z: Value z
@@ -330,13 +306,6 @@ def calc_c(z, msg_len, sec_param, pk, sk, debug):
     :param pk: Public Key
     :return: the value c and r
     """
-    if debug:
-        print("{}{} calc_c {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-        print("Z: ", dec(z, sk, pk))
-        print("msg_len: ", msg_len)
-        print("sec_param: ", sec_param)
-        print()
-
     # Calculate the random value r
     r = sec_param + msg_len + 1
 
@@ -346,27 +315,10 @@ def calc_c(z, msg_len, sec_param, pk, sk, debug):
     # c = [z] + [r]
     c = secure_addition(z, r_enc, pk)
 
-    if debug:
-        print("r: ", r)
-        print("r enc: ", r_enc)
-        print("r dec: ", dec(r_enc, sk, pk))
-        print()
-
-        print("Add of {} + {} =  {}".format(
-            dec(z, sk, pk),
-            dec(r_enc, sk, pk),
-            dec(c, sk, pk)
-        ))
-        print()
-
-        print("C: ", c)
-        print("Decrypted C: ", dec(c, sk, pk))
-        print("r: ", r)
-
     return c, r  # Both c and r are returned
 
 
-def calc_c_list(c, sk, pk, msg_len, debug):
+def calc_c_list(c, sk, pk, msg_len):
     """
     Calculates the encryption of all the bits of c
     :param c: Value c
@@ -375,27 +327,11 @@ def calc_c_list(c, sk, pk, msg_len, debug):
     :param msg_len: Length of the original message
     :return: A list with all the bits of c encrypted
     """
-    if debug:
-        print("{}{} calc_c_list {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-        print("C: ", dec(c, sk, pk))
-        print("C bin: ", num_to_bin(dec(c, sk, pk)))
-        print("msg_len: ", msg_len)
-        print()
-
-    # TODO I think this is not needed
     dec_c = dec(c, sk, pk)  # Decrypt c
 
-    if debug:
-        print("C before mod: ", dec_c)
-
     dec_c = dec_c % (2 ** msg_len)  # Reduce c to mod 2^l
-    if debug:
-        print("C after mod: ", dec_c)
 
     dec_c_bin = num_to_bin(dec_c)  # To binary
-
-    if debug:
-        print("C in bin: ", dec_c_bin)
 
     dec_c_bin = fill_left_zeros(dec_c_bin, msg_len - len(dec_c_bin))  # Check that no left zero is removed
 
@@ -404,7 +340,7 @@ def calc_c_list(c, sk, pk, msg_len, debug):
 
     # Encrypt all the different bits and save them in a list
     while i < len(dec_c_bin):
-        enc_i = enc(int(dec_c_bin[i]), pk)  # Encrypt the bit i  # TODO HERE HAPPENS SOMETHING
+        enc_i = enc(int(dec_c_bin[i]), pk)  # Encrypt the bit i
         c_list.append(enc_i)  # Add new element
 
         i += 1  # Update index
@@ -412,22 +348,10 @@ def calc_c_list(c, sk, pk, msg_len, debug):
     # Reverse the order of the list to fit the logical model of the slides
     c_list = c_list[::-1]
 
-    if debug:
-        print("C in bin filled: ", dec_c_bin)
-        print()
-
-        print_list = []
-        for i, val in enumerate(c_list):
-            aux_dec = dec(c_list[i], sk, pk)
-            print_list.append(aux_dec)
-
-        print_list = print_list[::-1]
-        print("c_list[] = \n{}".format(print_list))
-
     return c_list  # Return the encryption of all the bits
 
 
-def calc_e_list(r, c_encrypt, pk, msg_len, sk, debug):
+def calc_e_list(r, c_encrypt, pk, msg_len):
     """
     Calculates the list of e values
     :param r: Value r
@@ -436,23 +360,6 @@ def calc_e_list(r, c_encrypt, pk, msg_len, sk, debug):
     :param msg_len: Length of the original message
     :return:
     """
-    if debug:
-        print("{}{} calc_e_list {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-
-        print_list = []
-        for i, val in enumerate(c_encrypt):
-            aux_dec = dec(c_encrypt[i], sk, pk)
-            print_list.append(aux_dec)
-
-        print_list = print_list[::-1]
-
-        print("c_list[] = \n{}".format(print_list))
-        print("r ", r)
-        print("msg_len: ", msg_len)
-        print()
-
-        print("r before fill: ", r)
-
     # List which will store the values for e_i
     e_list = []
 
@@ -471,19 +378,7 @@ def calc_e_list(r, c_encrypt, pk, msg_len, sk, debug):
     # Reverse the list of r in order to match the logical model of the slides
     r_list = r_list[::-1]
 
-    if debug:
-        print("r after mod: ", r_mod)
-        print("r in bin", r_bin)
-        print("r after fill: ", r_filled)
-        print("r as list reverted = \n{}".format(r_list))
-
     for i, val in enumerate(c_encrypt):
-        if debug:
-            print("\n\t\t{}{} I: {} {}{}".format(bcolors.orange, DEB_AUX_TXT, i, DEB_AUX_TXT, bcolors.END))
-
-            print("Dec c_list[{}] = {}".format(i, dec(c_encrypt[i], sk, pk)))
-            print()
-
         # Encode 1 to operate with it
         enc_1 = enc(1, pk)
 
@@ -500,35 +395,13 @@ def calc_e_list(r, c_encrypt, pk, msg_len, sk, debug):
         # Reset to zero the cumulative sum
         sum_op = enc(0, pk)
 
-        if debug:
-            print("enc_c_i dec: ", dec(c_encrypt[i], sk, pk))
-            print("Result add: {}".format(dec(left_add_1, sk, pk)))
-            print()
-
-            print("r_list[{}] dec: {}".format(i, dec(enc_r_i, sk, pk)))
-            print("Result subs: {}".format(dec(left_add, sk, pk)))
-
-            print("Initial value for cumulative sum: ", dec(sum_op, sk, pk))
-
         # Calculate the sum
         for j in range(i + 1, msg_len):
-            if debug:
-                print("\n\t\t\t{}{} J: {} {}{}".format(bcolors.lightred, DEB_AUX2_TXT, j, DEB_AUX2_TXT, bcolors.END))
-
-                print("Dec c_encrypt[{}] = {}\n".format(j, dec(c_encrypt[j], sk, pk)))
-                print("Dec r_list[{}] = {}\n".format(j, enc(r_list[j], pk), sk, pk))
-
             # enc_r_j = [r_j]
             enc_r_j = enc(r_list[j], pk)
 
             # left_sum_j = [c_j] + [r_j]
             left_sum_j = secure_addition(c_encrypt[j], enc_r_j, pk)
-
-            if debug:
-                print("Result add {} + {} =  {}".format(dec(c_encrypt[j], sk, pk),
-                                                        dec(enc_r_j, sk, pk),
-                                                        dec(left_sum_j, sk, pk)
-                                                        ))
 
             # subs = [c_j] * [r_i]
             subs = secure_scalar_mult(c_encrypt[j], enc_r_j, pk)
@@ -540,46 +413,16 @@ def calc_e_list(r, c_encrypt, pk, msg_len, sk, debug):
             # Update the sum value
             sum_op = secure_addition(sum_op, left_sum_j, pk)
 
-            if debug:
-                print("Result add =  {}".format(dec(sum_op, sk, pk)))
-
         # e_i = left_add + sum_op
         e_i = secure_addition(left_add, sum_op, pk)
 
         # Add the calculated value to the list
         e_list.append(e_i)
 
-        if debug:
-            print("\nOutside of the sum")
-            print("Result sum add {} + {} =  {}".format(dec(left_add, sk, pk), dec(sum_op, sk, pk),
-                                                        dec(e_i, sk, pk)))
-
-    if debug:
-        print_list = []
-        for i, val in enumerate(e_list):
-            aux_dec = dec(e_list[i], sk, pk)
-            print_list.append(aux_dec)
-
-        print_list = print_list[::-1]
-
-        print("\ne_list[] = \n{}".format(print_list))
-
     return e_list  # Return a list with all the e values
 
 
-def check_e(e_list, pk, sk, msg_len, debug):
-    if debug:
-        print("{}{} check_e {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-
-        print_list = []
-        for i, val in enumerate(e_list):
-            aux_dec = dec(e_list[i], sk, pk)
-            print_list.append(aux_dec)
-
-        print_list = print_list[::-1]
-
-        print("\ne_list[] = \n{}".format(print_list))
-
+def check_e(e_list, pk, sk):
     # Go through all the e_i to check if there is a e_i = 0
     for i, val in enumerate(e_list):
         e_i = dec(e_list[i], sk, pk)
@@ -591,12 +434,7 @@ def check_e(e_list, pk, sk, msg_len, debug):
     return 0  # c larger than r
 
 
-def calc_final_z(c, r, msg_len, comp_result, sk, pk, debug):
-    if debug:
-        print("{}{} calc_final_z {}{}".format(bcolors.yellow, DEB_AUX_TXT, DEB_AUX_TXT, bcolors.END))
-        print("Dec of c: {}".format(dec(c, sk, pk)))
-        print("Received r: {}".format(r))
-
+def calc_final_z(c, r, msg_len, comp_result, sk, pk):
     # Encrypt the value r to operate with it
     enc_r = enc(r, pk)
 
@@ -610,23 +448,12 @@ def calc_final_z(c, r, msg_len, comp_result, sk, pk, debug):
     # Get the most significant bit of z
     z = dec(subs, sk, pk) >> msg_len
 
-    if debug:
-        print("\nDec of z: ", dec(z, sk, pk))
-        print("Len of resulting operation: {}".format(len(str(subs))))
-        print("Len of dec c: {}".format(len(str(num_to_bin(dec(c, sk, pk))))))
-
-        print("Length of the original msg: {}".format(msg_len))
-
-        print("Final z: {}".format(z))
-
     return z
 
 
-def sqp(num1, num2, pk, sk, msg_len, verbose, debug):
+def sqp(num1, num2, pk, sk, msg_len):
     """
     Performs the Secure Comparison Protocol
-    :param debug: Boolean to set the debug printing
-    :param verbose: Boolean to set the verbose printing
     :param msg_len: Length of the original message
     :param num1: First encrypted number to be compared
     :param num2: Second encrypted number to be compared
@@ -635,16 +462,16 @@ def sqp(num1, num2, pk, sk, msg_len, verbose, debug):
     :return:
     """
     # Calculate z
-    z = calc_z(num1, num2, pk, msg_len, sk, False)
+    z = calc_z(num1, num2, pk, msg_len)
 
-    c, r = calc_c(z, msg_len, SEC_PARAM, pk, sk, False)
+    c, r = calc_c(z, msg_len, SEC_PARAM, pk)
 
-    c_encrypt = calc_c_list(c, sk, pk, msg_len, False)
+    c_encrypt = calc_c_list(c, sk, pk, msg_len)
 
-    e_list = calc_e_list(r, c_encrypt, pk, msg_len, sk, False)
+    e_list = calc_e_list(r, c_encrypt, pk, msg_len)
 
-    comp_result = check_e(e_list, pk, sk, msg_len, False)
+    comp_result = check_e(e_list, pk, sk)
 
-    result_cpm = calc_final_z(c, r, msg_len, comp_result, sk, pk, False)
+    result_cpm = calc_final_z(c, r, msg_len, comp_result, sk, pk)
 
     return result_cpm
