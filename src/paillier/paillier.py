@@ -178,8 +178,8 @@ def enc(msg, pk):
     rdn = secrets.randbelow(pk.n)
 
     # Calculate the exponential values
-    g_m = square_mult(pk.g, msg, pk.n_2)
-    r_n = square_mult(rdn, pk.n, pk.n_2)
+    g_m = pow(pk.g, msg, pk.n_2)
+    r_n = pow(rdn, pk.n, pk.n_2)
 
     # Calculate the final value
     enc_msg = g_m * r_n % pk.n_2
@@ -197,7 +197,7 @@ def dec(enc_msg, sk, pk):
     :return: The decrypted message
     """
     # Calculate the x value from L(x)
-    x = square_mult(enc_msg, sk.lamb, pk.n_2)
+    x = pow(enc_msg, sk.lamb, pk.n_2)
 
     # Calculate3 L(x)
     l_result = calc_l(x, pk.n)
@@ -218,9 +218,9 @@ def secure_addition(m1, m2, pk, n=None):
     :return: The addition performed
     """
     if n is not None:  # No pk used, just modulus
-        return (m1 * m2) % (n * n)
+        return (m1 % n) * (m2 % n)
 
-    return (m1 * m2) % pk.n_2  # pk used
+    return (m1 % pk.n_2) * (m2 % pk.n_2)  # pk used
 
 
 def secure_scalar_mult(m1, c, pk, n=None):
@@ -233,9 +233,9 @@ def secure_scalar_mult(m1, c, pk, n=None):
     :return: The scalar multiplication performed
     """
     if n is not None:  # No pk used, just modulus
-        return int(square_mult(m1, c, n * n))
+        return int(pow(m1, c, n * n))
 
-    return int(square_mult(m1, c, pk.n_2))  # pk used
+    return int(pow(m1, c, pk.n_2))  # pk used
 
 
 def secure_subst(m1, m2, pk, n=None):
@@ -248,12 +248,12 @@ def secure_subst(m1, m2, pk, n=None):
     :return: The subtraction performed
     """
     if n is not None:  # No pk used, just modulus
-        m2_aux = int(square_mult(m2, n - 1, n * n))
+        m2_aux = int(pow(m2, n - 1, n * n))
         return (m1 * m2_aux) % (n * n)
 
     else:  # PK used
-        m2_aux = int(square_mult(m2, pk.n - 1, pk.n_2))
-        return (m1 * m2_aux) % pk.n_2
+        m2_aux = int(pow(m2, pk.n - 1, pk.n_2))
+        return (m1 % pk.n_2) * (m2_aux % pk.n_2)
 
 
 def num_to_bin(num):
@@ -378,10 +378,10 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
     # Reverse the list of r in order to match the logical model of the slides
     r_list = r_list[::-1]
 
+    # Encode 1 and 0 to operate with it
+    enc_1 = enc(1, pk)
+    enc_0 = enc(0, pk)
     for i, val in enumerate(c_encrypt):
-        # Encode 1 to operate with it
-        enc_1 = enc(1, pk)
-
         # Calculate [r_i]
         enc_r_i = enc(r_list[i], pk)
 
@@ -393,7 +393,7 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
         left_add = secure_subst(left_add_1, enc_r_i, pk)
 
         # Reset to zero the cumulative sum
-        sum_op = enc(0, pk)
+        sum_op = enc_0
 
         # Calculate the sum
         for j in range(i + 1, msg_len):
@@ -462,14 +462,19 @@ def sqp(num1, num2, pk, sk, msg_len):
     :return:
     """
     # Calculate z
+    print("z")
     z = calc_z(num1, num2, pk, msg_len)
 
+    print("z")
     c, r = calc_c(z, msg_len, SEC_PARAM, pk)
 
+    print("c")
     c_encrypt = calc_c_list(c, sk, pk, msg_len)
 
+    print("e")
     e_list = calc_e_list(r, c_encrypt, pk, msg_len)
 
+    print("e")
     comp_result = check_e(e_list, pk, sk)
 
     result_cpm = calc_final_z(c, r, msg_len, comp_result, sk, pk)

@@ -153,12 +153,12 @@ def comp(input_num_1=None, input_num_2=None, verbose=False, interactive=False):
 @main.command(help='Runs the SQP and stores the time data into csv files')
 @click.option('-l', required=False)
 @click.pass_context
-def run_timer(ctx, l=None):
+def timer(ctx, l=None):
     """
     Generates the Graphs
     """
     f = Figlet(font='slant')  # Useless cool text
-    print(f.renderText('Run Timer'))
+    print(f.renderText('Timer'))
 
     l_list = []  # List of lengths
 
