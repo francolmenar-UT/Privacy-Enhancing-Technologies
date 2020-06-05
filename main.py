@@ -1,6 +1,7 @@
 import timeit
 
 import click
+import os
 from pyfiglet import Figlet
 from src.constants.const import *
 from src.paillier.paillier import *
@@ -138,6 +139,17 @@ def create_val_list(tim_l):
     return val_list
 
 
+def create_folder(folder):
+    """
+    Checks if a folder exists, if it does not it creates it
+    :param folder: Folder to be created
+    :return:
+    """
+    # Check if the folder does not exists
+    if not os.path.isdir(folder):
+        os.makedirs(folder)  # Create folder
+
+
 @main.command(help='Runs the SQP and stores the time data into csv files')
 @click.option('-l', required=False)
 def run_timer(l=None):
@@ -148,16 +160,15 @@ def run_timer(l=None):
     print(f.renderText('Run Timer'))
 
     val_list = []  # List of values to be used
+    l_list = []  # List of lengths
 
     # Run all the different lengths
     if l is None:
-        # Create the list of values
-        val_list = create_val_list(TIM_L)
+        l_list = TIM_L  # Set the default list of lengths
 
     # Run just the selected lengths
     else:
         l_split = l.split(",")  # Split the input by comas
-        l_list = []  # List of lengths
         try:
             for l_i in l_split:  # Check all the input lengths
                 l_int = int(l_i)
@@ -176,13 +187,22 @@ def run_timer(l=None):
         # Sort the list
         l_list.sort()
 
-        # Create the list of values
-        val_list = create_val_list(l_list)
+    # Create the list of values
+    val_list = create_val_list(l_list)
+
+    # Get the path to the python file for checking the existence of folder
+    file_path = os.path.dirname(os.path.realpath(__file__))
+
+    # Create folders for storing the timing data
+    for folder in CREATE_FOLDERS:
+        create_folder(file_path + "/" + folder)
+
+    for l_i in l_list:
+        print(l_i)
 
     # Todo create the folders for the files
     # TODO create the constants for the files
     # TODO create the calling to the methods with the timers
-    print(val_list[0])
 
     return 0
 
