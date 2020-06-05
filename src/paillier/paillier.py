@@ -363,8 +363,10 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
     # List which will store the values for e_i
     e_list = []
 
+    two_aux = 2 ** msg_len
+
     # Calculate r modulus 2^l
-    r_mod = r % 2 ** msg_len
+    r_mod = r % two_aux
 
     # Set r in modulus 2^l to binary
     r_bin = num_to_bin(r_mod)
@@ -381,30 +383,31 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
     # Encode 1 and 0 to operate with it
     enc_1 = enc(1, pk)
     enc_0 = enc(0, pk)
+
+    r_encoded = []
+    # Encode r to operate with it
+    for i, val in enumerate(r_list):
+        r_encoded.append(enc(r_list[i], pk))
+
     for i, val in enumerate(c_encrypt):
-        # Calculate [r_i]
-        enc_r_i = enc(r_list[i], pk)
 
         # Perform the operations for the left addition
         # left_add_1 = [1] + [c_i]
         left_add_1 = secure_addition(enc_1, c_encrypt[i], pk)
 
         # left_add = [1] + [c_i] - [r_i]
-        left_add = secure_subst(left_add_1, enc_r_i, pk)
+        left_add = secure_subst(left_add_1, r_encoded[i], pk)
 
         # Reset to zero the cumulative sum
         sum_op = enc_0
 
         # Calculate the sum
         for j in range(i + 1, msg_len):
-            # enc_r_j = [r_j]
-            enc_r_j = enc(r_list[j], pk)
-
             # left_sum_j = [c_j] + [r_j]
-            left_sum_j = secure_addition(c_encrypt[j], enc_r_j, pk)
+            left_sum_j = secure_addition(c_encrypt[j], r_encoded[j], pk)
 
             # subs = [c_j] * [r_i]
-            subs = secure_scalar_mult(c_encrypt[j], enc_r_j, pk)
+            subs = secure_scalar_mult(c_encrypt[j], r_encoded[j], pk)
 
             # left_sum_j = [c_j] + [r_j] - [c_j] * [r_i] - [c_j] * [r_i]
             left_sum_j = secure_subst(left_sum_j, subs, pk)
