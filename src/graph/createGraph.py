@@ -110,11 +110,11 @@ def multiple_graph(data, col, axis, axis_name,
             name_plt += " & \n" + g_comp_name[i]
 
         # Add the legend to the graph
-        lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
+        # lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
 
         # Set the size of the points in the legend
-        for i in range(0, plt_counter):
-            lgnd.legendHandles[i]._legmarker.set_markersize(lgn_pt_size)
+        # for i in range(0, plt_counter):
+        #    lgnd.legendHandles[i]._legmarker.set_markersize(lgn_pt_size)
 
         # Set the name for the comparison graph
         plt.title(name_plt)
@@ -164,11 +164,11 @@ def two_graphs(data, col, axis, axis_name,
             plt_counter += 1
 
             # Add the legend to the graph
-            lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
+            # lgnd = plt.legend(loc=lgn_mode, numpoints=1, fontsize=10)
 
             # Set the size of the points in the legend
-            for i in range(0, plt_counter):
-                lgnd.legendHandles[i]._legmarker.set_markersize(lgn_pt_size)
+            # for i in range(0, plt_counter):
+            #     lgnd.legendHandles[i]._legmarker.set_markersize(lgn_pt_size)
 
             # Set the name for the comparison graph
             plt.title(name_plt)
@@ -199,21 +199,17 @@ def create_graph():
                  LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                  IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
-    """
-    
     # Creates comparison graphs
     multiple_graph(data, COL_NM, AXIS, AXIS_NM,
-                   GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
+                   GRAPH_NM, GRAPH_COMP_NM, VLN, GRID_DISC, GRID_COLOUR, COLOUR,
                    LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                    IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
     # Creates comparison of two graphs
     two_graphs(data, COL_NM, AXIS, AXIS_NM,
-               GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
+               GRAPH_NM, GRAPH_COMP_NM, VLN, GRID_DISC, GRID_COLOUR, COLOUR,
                LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
-    
-    """
 
 
 def createPlots(c1, c2, data, label, colour,
@@ -237,8 +233,18 @@ def createPlots(c1, c2, data, label, colour,
         plt.fill_between(x, y, alpha=0.4, color=colour)
 
     elif mode is VLN:
-        plt.violinplot(y, [x[1]], points=60, widths=5, showmeans=True,
-                       showextrema=True, showmedians=True, bw_method=0.5)
+        violin_parts = plt.violinplot(y, [x[1]], points=100, widths=4, showmeans=True,
+                                      showextrema=True, showmedians=True, bw_method=0.5)
+
+        for part in ('cbars', 'cmins', 'cmaxes', 'cmeans', 'cmedians'):
+            vp = violin_parts[part]
+            vp.set_color(colour)
+            vp.set_linewidth(1)
+
+        for part in violin_parts['bodies']:
+            part.set_color(colour)
+            part.set_alpha(0.3)
+            # part.set_edgecolor('black')
 
         # Incorrect plot mode
     else:
