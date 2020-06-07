@@ -10,7 +10,7 @@ COL_NM = ["Bit Length",
 # Range of values for the axis
 AXIS = [
     [0, 120, 10],
-    [40, 50, 1]
+    [0, 33, 3]
 ]
 
 # Names for the axis
@@ -86,10 +86,13 @@ PTN_F = "points/"
 LN_DISC = "LN_DISC"
 LN_DISC_F = "line_disc/"
 
+LN_MEDIAN = "LN_MEDIAN"
+LN_MEDIAN_F = "line_median/"
+
 VLN = "VLN"
 VLN_F = "violin/"
 
-MODE_F = [PTN_F, LN_DISC_F, VLN_F]
+MODE_F = [PTN_F, LN_DISC_F, VLN_F, LN_MEDIAN_F]
 
 ############# Modes for the Grid Linestyle  #############
 GRID_DISC = '--'

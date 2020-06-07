@@ -152,8 +152,7 @@ def comp(input_num_1=None, input_num_2=None, verbose=False, interactive=False):
 
 @main.command(help='Runs the SQP and stores the time data into csv files')
 @click.option('-l', required=False)
-@click.pass_context
-def timer(ctx, l=None):
+def timer(l=None):
     """
     Generates the Graphs
     """
@@ -198,13 +197,23 @@ def timer(ctx, l=None):
     for folder in CREATE_FOLDERS:
         create_folder(file_path + "/" + folder)
 
+    # Key generation for the execution
+    pk, sk = key_gen()
+
     # Run the executions and save the execution times
     for l_idx, l_i in enumerate(l_list):
         time_list = []  # List with execution times
 
         for val_idx, val in enumerate(val_list[l_idx]):
-            exe_time = timeit(lambda: ctx.invoke(comp, input_num_1=val[0], input_num_2=val[1]), number=EXE_REP)
-            time_list.append(exe_time)
+            # Encryption of the numbers to be compared
+            num1_enc = enc(val[0], pk)
+            num2_enc = enc(val[1], pk)
+
+            # Maximum length of the input messages
+            msg_len = max(len(str(num_to_bin(val[0]))), len(str(num_to_bin(val[1]))))
+
+            exe_time = timeit(lambda: sqp(num1_enc, num2_enc, pk, sk, msg_len), number=EXE_REP)
+            time_list.append(exe_time/EXE_REP)
 
         # Check which is the length of the next list of executions
         if l_i == 10:

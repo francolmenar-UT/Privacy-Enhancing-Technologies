@@ -24,9 +24,9 @@ DEB_AUX2_TXT = "----------------"
 
 # Timing Variables
 TIM_L = [10, 20, 50, 100]  # Lengths to be tested
-TIM_AMOUNT = 2  # Total amount of numbers to be tested
+TIM_AMOUNT = 100  # Total amount of numbers to be tested
 TIM_PAIRS = TIM_AMOUNT / 2  # Amount of pairs to be tested, based on TIM_AMOUNT
-EXE_REP = 1  # Just one execution per pair of values
+EXE_REP = 6  # Just one execution per pair of values
 
 # Folders
 DATA_F = "data/"

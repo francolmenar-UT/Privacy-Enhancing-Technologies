@@ -7,6 +7,23 @@ from src.constants.graph_const import *
 from src.constants.const import *
 
 
+def obtain_mean(data_list):
+    mean_data = np.array([COL_NM[0], COL_NM[1]])
+    for data_f_i in data_list:
+        mean_i = np.mean(data_f_i, axis=0)
+        mean_data = np.vstack((mean_data, mean_i))
+
+    mean_data = np.delete(mean_data, 0, axis=0)
+
+    df = pd.DataFrame(data=mean_data, dtype=float)
+
+    df.columns = [COL_NM[0], COL_NM[1]]
+    df[COL_NM[1]] = df[COL_NM[1]].round(decimals=2)
+    # df[COL_NM[0]] = df[COL_NM[0]].round(decimals=0)
+
+    return [df]
+
+
 def readFiles(files, col, round_val=None):
     """
     Read a list of csv files and returns its data
@@ -49,6 +66,8 @@ def update_path_mod(g_mode, img_folder):
         img_folder += PTN_F
     elif g_mode is LN_DISC:
         img_folder += LN_DISC_F
+    elif g_mode is LN_MEDIAN:
+        img_folder += LN_MEDIAN_F
     elif g_mode is VLN:
         img_folder += VLN_F
     else:
@@ -205,6 +224,8 @@ def create_graph():
     Uses the data from graph_const and const
     """
     # Reads the data from the csv files
+    mode = LN_MEDIAN  # Mode to use, change by the user
+
     data = readFiles([DATA_F + TIM_10_F + TIM_10_CSV,
                       DATA_F + TIM_20_F + TIM_20_CSV,
                       DATA_F + TIM_50_F + TIM_50_CSV,
@@ -216,21 +237,24 @@ def create_graph():
     for mode_i in MODE_F:
         create_folder(IMG_FOLDER_PATH + mode_i)
 
+    if mode is LN_MEDIAN:
+        data = obtain_mean(data)
+
     # Creates single graphs
     single_graph(data, COL_NM, AXIS, AXIS_NM,
-                 GRAPH_NM, PTN, GRID_DISC, COLOUR,
+                 GRAPH_NM, mode, GRID_DISC, COLOUR,
                  LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                  IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
     # Creates comparison graphs
     multiple_graph(data, COL_NM, AXIS, AXIS_NM,
-                   GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
+                   GRAPH_NM, GRAPH_COMP_NM, mode, GRID_DISC, GRID_COLOUR, COLOUR,
                    LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                    IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
     # Creates comparison of two graphs
     two_graphs(data, COL_NM, AXIS, AXIS_NM,
-               GRAPH_NM, GRAPH_COMP_NM, PTN, GRID_DISC, GRID_COLOUR, COLOUR,
+               GRAPH_NM, GRAPH_COMP_NM, mode, GRID_DISC, GRID_COLOUR, COLOUR,
                LGN_LR, PTN_SIZE_LGN, PTN_SIZE, LABEL,
                IMG_FOLDER_PATH, IMG, IMG_TYPE, IMG_SIZE)
 
@@ -254,6 +278,14 @@ def createPlots(c1, c2, data, label, colour,
     elif mode is LN_DISC:
         plt.plot(x, y, label=label, marker='.', markersize=np.sqrt(point_size[1]), color=colour, linestyle=':')
         plt.fill_between(x, y, alpha=0.4, color=colour)
+        # plt.axvline(x=15)
+
+    elif mode is LN_MEDIAN:
+        plt.plot(x, y, label=label, marker='.', markersize=np.sqrt(point_size[1]), color=colour, linestyle=':')
+        plt.fill_between(x, y, alpha=0.4, color=colour)
+        for idx, xc in enumerate(x):
+            plt.axvline(x=xc, ymax=y[idx], ymin=0)
+            print(y[idx])
 
     elif mode is VLN:
         violin_parts = plt.violinplot(y, [x[1]], points=100, widths=4, showmeans=True,

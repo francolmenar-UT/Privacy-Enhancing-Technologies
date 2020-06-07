@@ -1,8 +1,6 @@
-from src.constants.const import KEY_LEN, SEC_PARAM, DEB_AUX_TXT, DEB_AUX2_TXT
-from src.functions.square_mult import square_mult
+from src.constants.const import KEY_LEN, SEC_PARAM
 from src.paillier.paillier_key import *
 from decimal import *
-from src.functions.bcolors import bcolors
 
 import random
 import secrets
@@ -276,7 +274,7 @@ def fill_left_zeros(b_num, amount):
     return "0" * amount + str(b_num)  # Append the zeros to the left
 
 
-def calc_z(num1, num2, pk, msg_len):
+def calc_z(num1, num2, pk, two_to_l):
     """
     Calculates the value "z"
     :param num1: First encrypted number to be compared
@@ -286,7 +284,7 @@ def calc_z(num1, num2, pk, msg_len):
     :return:
     """
     # Encrypt 2^l
-    length_enc = enc(2 ** msg_len, pk)
+    length_enc = enc(two_to_l, pk)
 
     # add = [2^l] + [a]
     add = secure_addition(length_enc, num1, pk)
@@ -318,7 +316,7 @@ def calc_c(z, msg_len, sec_param, pk):
     return c, r  # Both c and r are returned
 
 
-def calc_c_list(c, sk, pk, msg_len):
+def calc_c_list(c, sk, pk, msg_len, two_to_l):
     """
     Calculates the encryption of all the bits of c
     :param c: Value c
@@ -329,7 +327,7 @@ def calc_c_list(c, sk, pk, msg_len):
     """
     dec_c = dec(c, sk, pk)  # Decrypt c
 
-    dec_c = dec_c % (2 ** msg_len)  # Reduce c to mod 2^l
+    dec_c = dec_c % two_to_l  # Reduce c to mod 2^l
 
     dec_c_bin = num_to_bin(dec_c)  # To binary
 
@@ -351,7 +349,7 @@ def calc_c_list(c, sk, pk, msg_len):
     return c_list  # Return the encryption of all the bits
 
 
-def calc_e_list(r, c_encrypt, pk, msg_len):
+def calc_e_list(r, c_encrypt, pk, msg_len, two_to_l):
     """
     Calculates the list of e values
     :param r: Value r
@@ -363,10 +361,8 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
     # List which will store the values for e_i
     e_list = []
 
-    two_aux = 2 ** msg_len
-
     # Calculate r modulus 2^l
-    r_mod = r % two_aux
+    r_mod = r % two_to_l
 
     # Set r in modulus 2^l to binary
     r_bin = num_to_bin(r_mod)
@@ -390,13 +386,12 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
         r_encoded.append(enc(r_list[i], pk))
 
     for i, val in enumerate(c_encrypt):
-
         # Perform the operations for the left addition
         # left_add_1 = [1] + [c_i]
-        left_add_1 = secure_addition(enc_1, c_encrypt[i], pk)
+        left_add_1 = secure_addition(enc_1, c_encrypt[i], None, n=two_to_l)
 
         # left_add = [1] + [c_i] - [r_i]
-        left_add = secure_subst(left_add_1, r_encoded[i], pk)
+        left_add = secure_subst(left_add_1, r_encoded[i], None, n=two_to_l)
 
         # Reset to zero the cumulative sum
         sum_op = enc_0
@@ -404,20 +399,20 @@ def calc_e_list(r, c_encrypt, pk, msg_len):
         # Calculate the sum
         for j in range(i + 1, msg_len):
             # left_sum_j = [c_j] + [r_j]
-            left_sum_j = secure_addition(c_encrypt[j], r_encoded[j], pk)
+            left_sum_j = secure_addition(c_encrypt[j], r_encoded[j], None, n=two_to_l)
 
             # subs = [c_j] * [r_i]
-            subs = secure_scalar_mult(c_encrypt[j], r_encoded[j], pk)
+            subs = secure_scalar_mult(c_encrypt[j], r_encoded[j], None, n=two_to_l)
 
             # left_sum_j = [c_j] + [r_j] - [c_j] * [r_i] - [c_j] * [r_i]
-            left_sum_j = secure_subst(left_sum_j, subs, pk)
-            left_sum_j = secure_subst(left_sum_j, subs, pk)
+            left_sum_j = secure_subst(left_sum_j, subs, None, n=two_to_l)
+            left_sum_j = secure_subst(left_sum_j, subs, None, n=two_to_l)
 
             # Update the sum value
-            sum_op = secure_addition(sum_op, left_sum_j, pk)
+            sum_op = secure_addition(sum_op, left_sum_j, None, n=two_to_l)
 
         # e_i = left_add + sum_op
-        e_i = secure_addition(left_add, sum_op, pk)
+        e_i = secure_addition(left_add, sum_op, None, n=two_to_l)
 
         # Add the calculated value to the list
         e_list.append(e_i)
@@ -445,7 +440,7 @@ def calc_final_z(c, r, msg_len, comp_result, sk, pk):
     subs = secure_subst(c, enc_r, pk)
 
     # right_add =  lambda{0,1} * 2^l
-    right_add = comp_result * 2 ** msg_len
+    # right_add = comp_result * 2 ** msg_len
     # subs = secure_addition(subs, right_add, pk)
 
     # Get the most significant bit of z
@@ -464,20 +459,17 @@ def sqp(num1, num2, pk, sk, msg_len):
     :param pk: Public Key
     :return:
     """
-    # Calculate z
-    print("z")
-    z = calc_z(num1, num2, pk, msg_len)
+    two_to_l = 2 ** msg_len
 
-    print("z")
+    # Calculate z
+    z = calc_z(num1, num2, pk, two_to_l)
+
     c, r = calc_c(z, msg_len, SEC_PARAM, pk)
 
-    print("c")
-    c_encrypt = calc_c_list(c, sk, pk, msg_len)
+    c_encrypt = calc_c_list(c, sk, pk, msg_len, two_to_l)
 
-    print("e")
-    e_list = calc_e_list(r, c_encrypt, pk, msg_len)
+    e_list = calc_e_list(r, c_encrypt, pk, msg_len, two_to_l)
 
-    print("e")
     comp_result = check_e(e_list, pk, sk)
 
     result_cpm = calc_final_z(c, r, msg_len, comp_result, sk, pk)
