@@ -15,17 +15,19 @@ AXIS = [
 
 # Names for the axis
 AXIS_NM = [
-    "Bit Length",
+    "Bit Length (bits)",
     "Execution time (s)"
 ]
 
 # Colours for the different graphs
 COLOUR = [
     "tab:blue",
-    "tab:orange",
+    "coral",
     "tab:green",
-    "tab:cyan"
+    "gold"
 ]
+
+COLOUR_FILL_MEDIAN = "cornflowerblue"
 
 # Default colour for the grid for comparison graphs
 GRID_COLOUR = '#cfe0e8'
@@ -55,7 +57,7 @@ LABEL = [
 
 # Names for the different graphs
 GRAPH_NM = [
-    "Bit length 10",
+    "Comparison of Execution time Along Input Bit Length",
     "Bit length 20",
     "Bit length 50",
     "Bit length 100"
@@ -92,7 +94,8 @@ LN_MEDIAN_F = "line_median/"
 VLN = "VLN"
 VLN_F = "violin/"
 
-MODE_F = [PTN_F, LN_DISC_F, VLN_F, LN_MEDIAN_F]
+ALL_MODES = [PTN, LN_DISC, VLN]
+MODE_F = [PTN_F, LN_DISC_F, LN_MEDIAN_F, VLN_F]
 
 ############# Modes for the Grid Linestyle  #############
 GRID_DISC = '--'
