@@ -1,11 +1,63 @@
-from src.constants.const import KEY_LEN, SEC_PARAM
-from src.paillier.paillier_key import *
+from pyfiglet import Figlet
 from decimal import *
 
 import random
 import secrets
 
+##################### Constants #####################
+SQP_TXT_AUX = "***************"
+DEB_AUX_TXT = "++++++++++++++++"
+KEY_LEN = 2048  # In bits
+SEC_PARAM = 1010580409767
 
+
+##################### Colors #####################
+class bcolors:
+    GREEN = '\033[32m'
+    RED = '\033[31m'
+    yellow = '\033[93m'
+    LIGHT_BLUE = '\033[34m'
+    BLUE = '\033[94m'
+    lightcyan = '\033[96m'
+    orange = '\033[33m'
+    lightred = '\033[91m'
+    END = '\033[0m'
+    ERR = '\033[31m'
+
+
+##################### Public Key Class #####################
+class PublicKey:
+    n = None
+    n_2 = None
+    g = None
+
+    def __init__(self, n, g):
+        self.n = n
+        self.n_2 = n * n
+        self.g = g
+
+    def toString(self):
+        print("Public Key:\n n: {}\n g: {}"
+              .format(self.n, self.g))
+
+
+##################### Private Key Class #####################
+class PrivateKey:
+    lamb = None
+    mu = None
+
+    def __init__(self, lamb, mu):
+        self.lamb = lamb
+        self.mu = mu
+
+    def toString(self):
+        print("Private Key:\n lamb: {}\n mu: {}"
+              .format(self.lamb, self.mu))
+
+
+########################### Paillier Cryptosystem ###########################
+
+#################### Key Generation ####################
 def calc_g(num):
     """
     Calculates "g"
@@ -165,6 +217,7 @@ def key_gen():
     return PublicKey(n, g), PrivateKey(lamb, mu)
 
 
+######################## Encryption #######################
 def enc(msg, pk):
     """
     Encrypts a message "msg" with the public key "pk"
@@ -185,6 +238,7 @@ def enc(msg, pk):
     return enc_msg  # Return the message encrypted
 
 
+######################## Decryption #######################
 def dec(enc_msg, sk, pk):
     """
     Decrypts a message "enc_msg" using the sk.
@@ -206,6 +260,7 @@ def dec(enc_msg, sk, pk):
     return dec_msg
 
 
+#################### Secure operations ####################
 def secure_addition(m1, m2, pk, n=None):
     """
     Performs a secure addition
@@ -254,6 +309,9 @@ def secure_subst(m1, m2, pk, n=None):
         return (m1 % pk.n_2) * (m2_aux % pk.n_2)
 
 
+########################### Secure Comparison Protocol ###########################
+
+#################### Auxiliary Functions ####################
 def num_to_bin(num):
     """
     Covert a number into its bit string representation
@@ -274,6 +332,7 @@ def fill_left_zeros(b_num, amount):
     return "0" * amount + str(b_num)  # Append the zeros to the left
 
 
+#################### EQT-1 methods ####################
 def calc_z(num1, num2, pk, two_to_l):
     """
     Calculates the value "z"
@@ -450,6 +509,7 @@ def calc_final_z(c, r, msg_len, comp_result, sk, pk, two_to_l):
     return z
 
 
+#################### Secure Comparison Protocol handler ####################
 def sqp(num1, num2, pk, sk, msg_len):
     """
     Performs the Secure Comparison Protocol
@@ -460,9 +520,9 @@ def sqp(num1, num2, pk, sk, msg_len):
     :param pk: Public Key
     :return:
     """
+    # For further calculations
     two_to_l = 2 ** msg_len
 
-    # Calculate z
     z = calc_z(num1, num2, pk, two_to_l)
 
     c, r = calc_c(z, msg_len, SEC_PARAM, pk)
@@ -476,3 +536,59 @@ def sqp(num1, num2, pk, sk, msg_len):
     result_cpm = calc_final_z(c, r, msg_len, comp_result, sk, pk, two_to_l)
 
     return result_cpm
+
+
+########################## User Interaction method #########################
+
+def comp():
+    # Get the inputs from the user
+    try:
+        input_num_1 = int(input("First number to compare: "))
+        input_num_2 = int(int(input("Second number to compare: ")))
+
+        # Negative numbers not supported - It is not stated in the statement that they have to be supported
+        if input_num_1 < 0 or input_num_2 < 0:
+            print("{}Wrong input format: Introduce positive numbers please{}".format(bcolors.RED, bcolors.END))
+            return
+
+    # Wrong format for the inputs from the user
+    except:
+        print("{}Wrong input format{}".format(bcolors.RED, bcolors.END))
+        return
+
+    print("\tComparing {} and {}\n".format(input_num_1, input_num_2))  # Intro info message
+
+    num1 = input_num_1
+    num2 = input_num_2
+
+    # Key generation
+    pk, sk = key_gen()
+
+    # Encryption of the numbers to be compared
+    num1_enc = enc(num1, pk)
+    num2_enc = enc(num2, pk)
+
+    # Maximum length of the input messages
+    msg_len = max(len(str(num_to_bin(num1))), len(str(num_to_bin(num2))))
+
+    # Call to the Secure Comparison Protocol method
+    result_cpm = sqp(num1_enc, num2_enc, pk, sk, msg_len)
+
+    # Printing the result of the comparison
+    print("{}{} Results from Secure Comparison Protocol {}{}\n".format(
+        bcolors.BLUE, SQP_TXT_AUX, SQP_TXT_AUX, bcolors.END))
+
+    if result_cpm == 1:  # First Number larger
+        print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, num1, num2, bcolors.END))
+
+    elif result_cpm == 0:  # Second Number larger
+        print("{}{} is larger or equal than {}{}".format(bcolors.LIGHT_BLUE, num2, num1, bcolors.END))
+
+    else:  # Error
+        print(f"{bcolors.ERR}Incorrect result from comparison: {result_cpm}{bcolors.END}")
+
+
+######################## Entry point to main method ########################
+f = Figlet(font='slant')  # Useless cool text
+print(f.renderText('SQP'))
+comp()  # Runs the cli
